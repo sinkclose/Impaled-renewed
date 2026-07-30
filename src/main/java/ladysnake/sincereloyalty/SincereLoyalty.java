@@ -23,14 +23,12 @@ import ladysnake.impaled.common.Impaled;
 import ladysnake.sincereloyalty.storage.LoyalTridentStorage;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.Item;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -48,11 +46,14 @@ public final class SincereLoyalty implements ModInitializer {
     public static final Identifier RECALLING_MESSAGE_ID = id("recalling_tridents");
 
     public static Identifier id(String path) {
-        return new Identifier(MOD_ID, path);
+        return Identifier.of(MOD_ID, path);
     }
 
     @Override
     public void onInitialize() {
+        PayloadTypeRegistry.playC2S().register(RecallTridentsPayload.ID, RecallTridentsPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(RecallingTridentsPayload.ID, RecallingTridentsPayload.CODEC);
+
         Object2IntMap<UUID> recallingPlayers = new Object2IntOpenHashMap<>();
         ServerTickEvents.START_SERVER_TICK.register(server -> recallingPlayers.object2IntEntrySet().removeIf(entry -> {
             ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
@@ -63,7 +64,7 @@ public final class SincereLoyalty implements ModInitializer {
                 return false;
             }
 
-            LoyalTridentStorage loyalTridentStorage = LoyalTridentStorage.get(player.getWorld());
+            LoyalTridentStorage loyalTridentStorage = LoyalTridentStorage.get(player.getServerWorld());
             TridentRecaller.RecallStatus newRecallStatus;
             if (loyalTridentStorage.recallTridents(player)) {
                 newRecallStatus = TridentRecaller.RecallStatus.RECALLING;
@@ -75,11 +76,13 @@ public final class SincereLoyalty implements ModInitializer {
             ((TridentRecaller) player).updateRecallStatus(newRecallStatus);
             return true;
         }));
-        ServerPlayNetworking.registerGlobalReceiver(RECALL_TRIDENTS_MESSAGE_ID, (MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) -> {
-            TridentRecaller.RecallStatus requested = buf.readEnumConstant(TridentRecaller.RecallStatus.class);
+        ServerPlayNetworking.registerGlobalReceiver(RecallTridentsPayload.ID, (payload, context) -> {
+            MinecraftServer server = context.server();
+            ServerPlayerEntity player = context.player();
+            TridentRecaller.RecallStatus requested = payload.status();
 
             server.execute(() -> {
-                LoyalTridentStorage loyalTridentStorage = LoyalTridentStorage.get(player.getWorld());
+                LoyalTridentStorage loyalTridentStorage = LoyalTridentStorage.get(player.getServerWorld());
                 TridentRecaller.RecallStatus currentRecallStatus = ((TridentRecaller) player).getCurrentRecallStatus();
                 TridentRecaller.RecallStatus newRecallStatus;
 

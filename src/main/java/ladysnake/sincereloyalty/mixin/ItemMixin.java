@@ -18,6 +18,7 @@
 package ladysnake.sincereloyalty.mixin;
 
 import ladysnake.sincereloyalty.LoyalTrident;
+import ladysnake.sincereloyalty.NbtUtil;
 import ladysnake.sincereloyalty.storage.LoyalTridentStorage;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -38,12 +39,12 @@ import java.util.UUID;
 public abstract class ItemMixin {
     @Inject(method = "inventoryTick", at = @At("RETURN"))
     private void updateTridentInInventory(ItemStack stack, World world, Entity entity, int slot, boolean selected, CallbackInfo ci) {
-        if (entity.age % 10 == 0 && !entity.world.isClient && entity instanceof PlayerEntity) {
+        if (entity.age % 10 == 0 && !entity.getWorld().isClient && entity instanceof PlayerEntity) {
             UUID trueOwner = LoyalTrident.getTrueOwner(stack);
             if (Objects.equals(trueOwner, entity.getUuid())) {
-                NbtCompound loyaltyData = Objects.requireNonNull(stack.getSubNbt(LoyalTrident.MOD_NBT_KEY));
-                if (!Objects.equals(entity.getEntityName(), loyaltyData.getString(LoyalTrident.OWNER_NAME_NBT_KEY))) {
-                    loyaltyData.putString(LoyalTrident.OWNER_NAME_NBT_KEY, entity.getEntityName());
+                NbtCompound loyaltyData = NbtUtil.getSubNbt(stack, LoyalTrident.MOD_NBT_KEY);
+                if (loyaltyData != null && !Objects.equals(entity.getNameForScoreboard(), loyaltyData.getString(LoyalTrident.OWNER_NAME_NBT_KEY))) {
+                    NbtUtil.modifySubNbt(stack, LoyalTrident.MOD_NBT_KEY, sub -> sub.putString(LoyalTrident.OWNER_NAME_NBT_KEY, entity.getNameForScoreboard()));
                 }
             } else if (trueOwner != null) {
                 LoyalTridentStorage.get((ServerWorld) world).memorizeTrident(trueOwner, LoyalTrident.getTridentUuid(stack), (PlayerEntity) entity);

@@ -2,8 +2,8 @@ package ladysnake.impaled.mixin;
 
 import ladysnake.impaled.common.entity.ElderTridentEntity;
 import ladysnake.impaled.common.init.ImpaledItems;
+import ladysnake.sincereloyalty.LoyalTrident;
 import ladysnake.sincereloyalty.SincereLoyalty;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -12,6 +12,7 @@ import net.minecraft.entity.mob.ElderGuardianEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.TridentEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import org.jetbrains.annotations.Nullable;
@@ -28,21 +29,21 @@ public abstract class LivingEntityMixin extends EntityMixin {
     private @Nullable Consumer<ItemStack> impaled$dropSink;
 
     @Inject(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;shouldDropLoot()Z"))
-    private void drop(DamageSource source, CallbackInfo ci) {
+    private void drop(ServerWorld world, DamageSource source, CallbackInfo ci) {
         Entity directSource = source.getSource();
 
         if (directSource instanceof ElderTridentEntity) {
             this.impaled$dropSink = ((ElderTridentEntity) directSource).getStackFetcher();
         }
 
-        if (((Object) this) instanceof ElderGuardianEntity && (directSource instanceof PlayerEntity player && player.getMainHandStack().isIn(SincereLoyalty.TRIDENTS) || (directSource instanceof TridentEntity && EnchantmentHelper.getLoyalty(((TridentEntityAccessor) directSource).impaled$getTridentStack()) > 0))) {
+        if (((Object) this) instanceof ElderGuardianEntity && (directSource instanceof PlayerEntity player && player.getMainHandStack().isIn(SincereLoyalty.TRIDENTS) || (directSource instanceof TridentEntity trident && LoyalTrident.getLoyaltyLevel(trident.getWeaponStack()) > 0))) {
             this.dropStack(new ItemStack(ImpaledItems.ELDER_GUARDIAN_EYE));
-            this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 1.0f, 1.0f, true);
+            this.getWorld().playSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 1.0f, 1.0f, true);
         }
     }
 
     @Inject(method = "drop", at = @At("RETURN"))
-    private void endDrop(DamageSource source, CallbackInfo ci) {
+    private void endDrop(ServerWorld world, DamageSource source, CallbackInfo ci) {
         this.impaled$dropSink = null;
     }
 

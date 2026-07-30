@@ -2,19 +2,23 @@ package ladysnake.impaled.common.item;
 
 import ladysnake.impaled.common.entity.ImpaledTridentEntity;
 import ladysnake.impaled.common.init.ImpaledEntityTypes;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.world.World;
 
 public class ElderTridentItem extends ImpaledTridentItem {
-    public ElderTridentItem(Settings settings, EntityType<? extends ImpaledTridentEntity> entityType) {
+    public ElderTridentItem(Item.Settings settings, EntityType<? extends ImpaledTridentEntity> entityType) {
         super(settings, entityType);
     }
 
@@ -22,8 +26,11 @@ public class ElderTridentItem extends ImpaledTridentItem {
     public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
         super.onStoppedUsing(stack, world, user, remainingUseTicks);
 
-        int j = EnchantmentHelper.getLevel(Enchantments.RIPTIDE, stack);
-        int useTime = this.getMaxUseTime(stack) - remainingUseTicks;
+        RegistryEntry<net.minecraft.enchantment.Enchantment> riptideEntry = world.getRegistryManager()
+                .getWrapperOrThrow(RegistryKeys.ENCHANTMENT)
+                .getOrThrow(Enchantments.RIPTIDE);
+        int j = EnchantmentHelper.getEnchantments(stack).getLevel(riptideEntry);
+        int useTime = this.getMaxUseTime(stack, user) - remainingUseTicks;
         if (useTime >= 10 && j > 0) {
             for (int i = 1; i <= j; i++) {
                 if (!world.isClient && user instanceof PlayerEntity player) {

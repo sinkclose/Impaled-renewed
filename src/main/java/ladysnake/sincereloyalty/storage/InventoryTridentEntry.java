@@ -18,6 +18,7 @@
 package ladysnake.sincereloyalty.storage;
 
 import ladysnake.sincereloyalty.LoyalTrident;
+import ladysnake.sincereloyalty.NbtUtil;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.TridentEntity;
 import net.minecraft.item.ItemStack;
@@ -54,11 +55,11 @@ public class InventoryTridentEntry extends TridentEntry {
 
     @Override
     public TridentEntity findTrident() {
-        PlayerEntity player = this.world.getPlayerByUuid(this.playerUuid);
+        PlayerEntity player = this.world.getServer().getPlayerManager().getPlayer(this.playerUuid);
         if (player != null) {
             for (int slot = 0; slot < player.getInventory().size(); slot++) {
                 ItemStack stack = player.getInventory().getStack(slot);
-                NbtCompound loyaltyData = stack.getSubNbt(LoyalTrident.MOD_NBT_KEY);
+                NbtCompound loyaltyData = NbtUtil.getSubNbt(stack, LoyalTrident.MOD_NBT_KEY);
                 if (loyaltyData != null && loyaltyData.containsUuid(LoyalTrident.TRIDENT_UUID_NBT_KEY)) {
                     if (loyaltyData.getUuid(LoyalTrident.TRIDENT_UUID_NBT_KEY).equals(this.tridentUuid)) {
                         TridentEntity tridentEntity = LoyalTrident.spawnTridentForStack(player, stack);

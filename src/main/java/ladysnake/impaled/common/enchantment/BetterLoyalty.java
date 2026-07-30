@@ -1,6 +1,7 @@
 package ladysnake.impaled.common.enchantment;
 
 import ladysnake.sincereloyalty.LoyalTrident;
+import ladysnake.sincereloyalty.NbtUtil;
 import ladysnake.sincereloyalty.TridentRecaller;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
@@ -10,12 +11,12 @@ import net.minecraft.sound.SoundEvents;
 
 public final class BetterLoyalty {
     public static boolean tryInsertTrident(ItemStack stack, PlayerEntity player) {
-        NbtCompound tag = stack.getSubNbt(LoyalTrident.MOD_NBT_KEY);
+        NbtCompound tag = NbtUtil.getSubNbt(stack, LoyalTrident.MOD_NBT_KEY);
         if (tag != null) {
             TridentRecaller caller = (TridentRecaller) player;
 
             if (caller.getCurrentRecallStatus() == TridentRecaller.RecallStatus.RECALLING) {
-                player.world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ITEM_TRIDENT_RETURN, player.getSoundCategory(), 0.7f, 0.5f);
+                player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ITEM_TRIDENT_RETURN, player.getSoundCategory(), 0.7f, 0.5f);
             }
 
             caller.updateRecallStatus(TridentRecaller.RecallStatus.NONE);

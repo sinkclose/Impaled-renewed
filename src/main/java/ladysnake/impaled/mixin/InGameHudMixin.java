@@ -1,11 +1,12 @@
 package ladysnake.impaled.mixin;
 
+import ladysnake.impaled.common.IPlayerTargeting;
 import ladysnake.impaled.common.item.ElderTridentItem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -20,14 +21,15 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.amymialee.mialeemisc.entities.IPlayerTargeting;
+
 
 @Mixin(InGameHud.class)
-public class InGameHudMixin extends DrawableHelper {
+public class InGameHudMixin {
     @Shadow @Final private MinecraftClient client;
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void impaled$renderCrosshair(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
+    private void impaled$renderCrosshair(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        float tickDelta = tickCounter.getLastFrameDuration();
         PlayerEntity player = this.client.player;
         if (!(player instanceof IPlayerTargeting targeting)) {
             return;
@@ -37,7 +39,7 @@ public class InGameHudMixin extends DrawableHelper {
             return;
         }
         ItemStack mainHandStack = player.getMainHandStack();
-        if (EnchantmentHelper.getRiptide(mainHandStack) > 0) {
+        if (EnchantmentHelper.getTridentSpinAttackStrength(mainHandStack, player) > 0) {
             return;
         }
         if (!(mainHandStack.getItem() instanceof ElderTridentItem)) {

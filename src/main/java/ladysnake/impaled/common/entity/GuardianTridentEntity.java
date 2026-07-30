@@ -51,11 +51,12 @@ public class GuardianTridentEntity extends ElderTridentEntity {
             }
 
             for (int i = 0; i < 20; i++) {
-                this.world.addParticle(ParticleTypes.BUBBLE_POP, this.getX() + this.random.nextGaussian() / 10, this.getY() + this.random.nextGaussian() / 10, this.getZ() + this.random.nextGaussian() / 10, this.random.nextGaussian() / 10, Math.abs(this.random.nextGaussian() / 10), this.random.nextGaussian() / 10);
+                this.getWorld().addParticle(ParticleTypes.BUBBLE_POP, this.getX() + this.random.nextGaussian() / 10, this.getY() + this.random.nextGaussian() / 10, this.getZ() + this.random.nextGaussian() / 10, this.random.nextGaussian() / 10, Math.abs(this.random.nextGaussian() / 10), this.random.nextGaussian() / 10);
             }
 
             this.setNoGravity(false);
             this.remove(RemovalReason.DISCARDED);
+            return;
         }
 
         if (this.timeSinceTracking != -1) {
@@ -65,7 +66,7 @@ public class GuardianTridentEntity extends ElderTridentEntity {
         if (timeSinceTracking >= 40) {
             Vec3d rotationVec = this.getVelocity().normalize();
             Box box = new Box(this.getX() - 1, this.getY() - 1, this.getZ() - 1, this.getX() + 1, this.getY() + 1, this.getZ() + 1).expand(96 * rotationVec.getX(), 96 * rotationVec.getY(), 96 * rotationVec.getZ());
-            List<LivingEntity> possibleTargets = world.getEntitiesByClass(LivingEntity.class, box, (entity) -> entity.canHit() && entity != this.getOwner() && !(entity instanceof TameableEntity && ((TameableEntity) entity).isTamed()));
+            List<LivingEntity> possibleTargets = getWorld().getEntitiesByClass(LivingEntity.class, box, (entity) -> entity.canHit() && entity != this.getOwner() && !(entity instanceof TameableEntity && ((TameableEntity) entity).isTamed()));
             List<LivingEntity> validTargets = new ArrayList<>();
 
             double max = 0.3;
@@ -88,10 +89,12 @@ public class GuardianTridentEntity extends ElderTridentEntity {
 
             if (this.tridentTarget != null) {
                 this.timeSinceTracking = -1;
+                this.hasSearchedTarget = true;
             } else {
                 this.timeSinceTracking = 0;
             }
         } else {
+            this.hasSearchedTarget = true;
             super.tick();
         }
         this.setNoGravity(this.tridentTarget != null && tridentTarget.isAlive());

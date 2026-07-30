@@ -2,7 +2,6 @@ package ladysnake.impaled.mixin;
 
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.projectile.TridentEntity;
-import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -17,12 +16,6 @@ public interface TridentEntityAccessor {
     static TrackedData<Boolean> impaled$getEnchanted() {
         return null;
     }
-
-    @Accessor("tridentStack")
-    ItemStack impaled$getTridentStack();
-
-    @Accessor("tridentStack")
-    void impaled$setTridentStack(ItemStack stack);
 
     @Accessor("dealtDamage")
     boolean impaled$hasDealtDamage();

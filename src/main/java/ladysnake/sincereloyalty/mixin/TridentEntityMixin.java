@@ -31,7 +31,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -47,8 +46,6 @@ public abstract class TridentEntityMixin extends PersistentProjectileEntity impl
     @Unique
     private static final TrackedData<Boolean> sincereLoyalty$SITTING = DataTracker.registerData(TridentEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
-    @Shadow
-    private ItemStack tridentStack;
     private @Nullable Optional<UUID> sincereLoyalty_trueOwner;
 
     protected TridentEntityMixin(EntityType<? extends PersistentProjectileEntity> entityType, World world) {
@@ -56,13 +53,13 @@ public abstract class TridentEntityMixin extends PersistentProjectileEntity impl
     }
 
     @Inject(method = "initDataTracker", at = @At("RETURN"))
-    private void initDataTracker(CallbackInfo ci) {
-        this.getDataTracker().startTracking(sincereLoyalty$SITTING, false);
+    private void initDataTracker(DataTracker.Builder builder, CallbackInfo ci) {
+        builder.add(sincereLoyalty$SITTING, false);
     }
 
     @Override
     public UUID loyaltrident_getTridentUuid() {
-        return LoyalTrident.getTridentUuid(this.tridentStack);
+        return LoyalTrident.getTridentUuid(this.getWeaponStack());
     }
 
     @Override
@@ -77,7 +74,7 @@ public abstract class TridentEntityMixin extends PersistentProjectileEntity impl
 
     @Override
     public void loyaltrident_setReturnSlot(int slot) {
-        LoyalTrident.setPreferredSlot(this.tridentStack, slot);
+        LoyalTrident.setPreferredSlot(this.getWeaponStack(), slot);
     }
 
     /**
@@ -104,10 +101,10 @@ public abstract class TridentEntityMixin extends PersistentProjectileEntity impl
 
     @Inject(method = "tick", at = @At("RETURN"))
     private void tickTrident(CallbackInfo ci) {
-        if (!this.world.isClient) {
+        if (!this.getWorld().isClient) {
             this.getTrueTridentOwner().ifPresent(trueOwnerUuid -> {
                 // Keep track of this trident's position at all time, in case the chunk goes unloaded
-                LoyalTridentStorage.get((ServerWorld) this.world)
+                LoyalTridentStorage.get((ServerWorld) this.getWorld())
                         .memorizeTrident(trueOwnerUuid, ((TridentEntity) (Object) this));
             });
         }
@@ -117,7 +114,7 @@ public abstract class TridentEntityMixin extends PersistentProjectileEntity impl
     private Optional<UUID> getTrueTridentOwner() {
         //noinspection OptionalAssignedToNull
         if (this.sincereLoyalty_trueOwner == null) {
-            this.sincereLoyalty_trueOwner = Optional.ofNullable(LoyalTrident.getTrueOwner(this.tridentStack));
+            this.sincereLoyalty_trueOwner = Optional.ofNullable(LoyalTrident.getTrueOwner(this.getWeaponStack()));
             // Not the owner == no loyalty
             if (this.sincereLoyalty_trueOwner.isPresent() && !sincereLoyalty_trueOwner.get().equals(((ProjectileAccessor) this).getOwnerUuid())) {
                 this.loyaltrident_sit();
@@ -129,9 +126,9 @@ public abstract class TridentEntityMixin extends PersistentProjectileEntity impl
     @Override
     public void remove(RemovalReason reason) {
         super.remove(reason);
-        if (!world.isClient && !reason.shouldSave()) {
+        if (!this.getWorld().isClient && !reason.shouldSave()) {
             this.getTrueTridentOwner().ifPresent(uuid ->
-                    LoyalTridentStorage.get(((ServerWorld) this.world)).forgetTrident(uuid, ((TridentEntity) (Object) this)));
+                    LoyalTridentStorage.get(((ServerWorld) this.getWorld())).forgetTrident(uuid, ((TridentEntity) (Object) this)));
         }
     }
 

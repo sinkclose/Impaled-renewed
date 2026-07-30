@@ -1,5 +1,6 @@
 package ladysnake.impaled.common.entity;
 
+import ladysnake.impaled.common.IPlayerTargeting;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
@@ -19,7 +20,6 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import xyz.amymialee.mialeemisc.entities.IPlayerTargeting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +65,7 @@ public class ElderTridentEntity extends ImpaledTridentEntity {
         }
         super.tick();
         Box box = this.getBoundingBox();
-        List<Entity> list = this.world.getOtherEntities(this, box);
+        List<Entity> list = this.getWorld().getOtherEntities(this, box, e -> true);
         for (Entity entity : list) {
             if (entity instanceof ItemEntity itemEntity) {
                 this.fetchedStacks.add(itemEntity.getStack());
@@ -84,7 +84,7 @@ public class ElderTridentEntity extends ImpaledTridentEntity {
     @Override
     protected void onEntityHit(EntityHitResult entityHitResult) {
         super.onEntityHit(entityHitResult);
-        if (this.world instanceof ServerWorld && this.hasChanneling() && entityHitResult.getEntity() instanceof LivingEntity livingEntity) {
+        if (this.getWorld() instanceof ServerWorld && this.hasChanneling(this.getWeaponStack()) && entityHitResult.getEntity() instanceof LivingEntity livingEntity) {
             if (livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 200, 2))) {
                 if (livingEntity instanceof ServerPlayerEntity serverPlayerEntity) {
                     serverPlayerEntity.networkHandler.sendPacket(new GameStateChangeS2CPacket(GameStateChangeS2CPacket.ELDER_GUARDIAN_EFFECT, this.isSilent() ? 0.0F : 1.0F));
@@ -129,7 +129,7 @@ public class ElderTridentEntity extends ImpaledTridentEntity {
             NbtList fetchedItems = tag.getList("fetched_items", NbtElement.COMPOUND_TYPE);
             for (int i = 0; i < fetchedItems.size(); i++) {
                 NbtCompound fetchedItem = fetchedItems.getCompound(i);
-                this.fetchedStacks.add(ItemStack.fromNbt(fetchedItem));
+                this.fetchedStacks.add(ItemStack.fromNbtOrEmpty(this.getRegistryManager(), fetchedItem));
             }
         }
     }
@@ -137,10 +137,10 @@ public class ElderTridentEntity extends ImpaledTridentEntity {
     @Override
     public void writeCustomDataToNbt(NbtCompound tag) {
         super.writeCustomDataToNbt(tag);
-        NbtList NbtList = new NbtList();
+        NbtList nbtList = new NbtList();
         for (ItemStack fetchedStack : this.fetchedStacks) {
-            NbtList.add(fetchedStack.writeNbt(new NbtCompound()));
+            nbtList.add(fetchedStack.encode(this.getRegistryManager()));
         }
-        tag.put("fetched_stacks", NbtList);
+        tag.put("fetched_items", nbtList);
     }
 }

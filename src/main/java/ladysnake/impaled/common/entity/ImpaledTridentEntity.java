@@ -1,10 +1,14 @@
 package ladysnake.impaled.common.entity;
 
 import ladysnake.impaled.mixin.TridentEntityAccessor;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.projectile.TridentEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 
 public class ImpaledTridentEntity extends TridentEntity {
@@ -13,8 +17,11 @@ public class ImpaledTridentEntity extends TridentEntity {
     }
 
     public void setTridentAttributes(ItemStack stack) {
-        this.setTridentStack(stack.copy());
-        this.dataTracker.set(TridentEntityAccessor.impaled$getLoyalty(), (byte) EnchantmentHelper.getLoyalty(stack));
+        this.setStack(stack.copy());
+        if (this.getWorld() instanceof ServerWorld serverWorld) {
+            byte loyalty = (byte) Math.max(0, EnchantmentHelper.getTridentReturnAcceleration(serverWorld, stack, this));
+            this.dataTracker.set(TridentEntityAccessor.impaled$getLoyalty(), loyalty);
+        }
         this.dataTracker.set(TridentEntityAccessor.impaled$getEnchanted(), stack.hasGlint());
     }
 
@@ -23,7 +30,7 @@ public class ImpaledTridentEntity extends TridentEntity {
     }
 
     public void setTridentStack(ItemStack tridentStack) {
-        ((TridentEntityAccessor) this).impaled$setTridentStack(tridentStack);
+        this.setStack(tridentStack);
     }
 
     protected void setDealtDamage() {
@@ -32,5 +39,15 @@ public class ImpaledTridentEntity extends TridentEntity {
 
     protected boolean hasDealtDamage() {
         return ((TridentEntityAccessor) this).impaled$hasDealtDamage();
+    }
+
+    protected boolean hasChanneling(ItemStack stack) {
+        if (this.getWorld() instanceof ServerWorld serverWorld) {
+            RegistryEntry<net.minecraft.enchantment.Enchantment> channeling = serverWorld.getRegistryManager()
+                    .getWrapperOrThrow(RegistryKeys.ENCHANTMENT)
+                    .getOrThrow(net.minecraft.enchantment.Enchantments.CHANNELING);
+            return EnchantmentHelper.getEnchantments(stack).getLevel(channeling) > 0;
+        }
+        return false;
     }
 }

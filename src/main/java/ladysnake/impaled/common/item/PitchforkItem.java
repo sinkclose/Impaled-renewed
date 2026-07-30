@@ -9,6 +9,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -26,7 +27,7 @@ public class PitchforkItem extends ImpaledTridentItem {
         TILLED_BLOCKS = Maps.newHashMap(ImmutableMap.of(Blocks.GRASS_BLOCK, Blocks.FARMLAND.getDefaultState(), Blocks.DIRT_PATH, Blocks.FARMLAND.getDefaultState(), Blocks.DIRT, Blocks.FARMLAND.getDefaultState(), Blocks.COARSE_DIRT, Blocks.DIRT.getDefaultState()));
     }
 
-    public PitchforkItem(Settings settings, EntityType<? extends ImpaledTridentEntity> entityType) {
+    public PitchforkItem(Item.Settings settings, EntityType<? extends ImpaledTridentEntity> entityType) {
         super(settings, entityType);
     }
 
@@ -41,7 +42,7 @@ public class PitchforkItem extends ImpaledTridentItem {
                 if (!world.isClient) {
                     world.setBlockState(blockPos, blockState, 11);
                     if (playerEntity != null) {
-                        context.getStack().damage(1, (LivingEntity) playerEntity, livingEntity -> livingEntity.sendToolBreakStatus(context.getPlayer().getActiveHand()));
+                        context.getStack().damage(1, (LivingEntity) playerEntity, LivingEntity.getSlotForHand(context.getHand()));
                     }
                 }
 

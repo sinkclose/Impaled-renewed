@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "ladysnake.sincereloyalty.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
     "AnvilScreenHandlerMixin",
     "ItemEntityMixin",
@@ -16,7 +16,6 @@
     "TridentItemMixin"
   ],
   "client": [
-    "client.ItemStackMixin",
     "client.MinecraftClientMixin",
     "client.PlayerEntityRendererMixin"
   ],

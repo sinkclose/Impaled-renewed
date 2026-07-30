@@ -18,14 +18,16 @@
 package ladysnake.sincereloyalty.mixin;
 
 import ladysnake.sincereloyalty.LoyalTrident;
+import ladysnake.sincereloyalty.NbtUtil;
 import ladysnake.sincereloyalty.SincereLoyalty;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ForgingScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.ScreenHandlerType;
@@ -34,11 +36,8 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.Slice;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.Map;
 
 @Mixin(SmithingScreenHandler.class)
 public abstract class SmithingScreenHandlerMixin extends ForgingScreenHandler {
@@ -49,38 +48,38 @@ public abstract class SmithingScreenHandlerMixin extends ForgingScreenHandler {
     @Inject(method = "canTakeOutput", at = @At("RETURN"), cancellable = true)
     private void canTakeResult(PlayerEntity playerEntity, boolean resultNonEmpty, CallbackInfoReturnable<Boolean> cir) {
         if (resultNonEmpty && !cir.getReturnValueZ()) {
-            ItemStack item = this.input.getStack(0);
-            ItemStack upgradeItem = this.input.getStack(1);
+            ItemStack item = this.input.getStack(1);
+            ItemStack upgradeItem = this.input.getStack(2);
             cir.setReturnValue(item.isIn(SincereLoyalty.TRIDENTS) && upgradeItem.isIn(SincereLoyalty.LOYALTY_CATALYSTS));
         }
     }
 
-    @ModifyArg(
-            method = "updateResult",
-            slice = @Slice(from = @At(value = "FIELD", target = "Lnet/minecraft/item/ItemStack;EMPTY:Lnet/minecraft/item/ItemStack;")),
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/inventory/CraftingResultInventory;setStack(ILnet/minecraft/item/ItemStack;)V"
-            )
-    )
-    private ItemStack updateResult(ItemStack initialResult) {
-        if (initialResult.isEmpty()) {
-            ItemStack item = this.input.getStack(0);
-            ItemStack upgradeItem = this.input.getStack(1);
-            if (item.isIn(SincereLoyalty.TRIDENTS) && upgradeItem.isIn(SincereLoyalty.LOYALTY_CATALYSTS)) {
-                Map<Enchantment, Integer> enchantments = EnchantmentHelper.get(item);
-                if (enchantments.getOrDefault(Enchantments.LOYALTY, 0) == Enchantments.LOYALTY.getMaxLevel()) {
-                    ItemStack result = item.copy();
-                    // we can mutate the map as it is recreated with every call to getEnchantments
-                    enchantments.put(Enchantments.LOYALTY, Enchantments.LOYALTY.getMaxLevel() + 1);
-                    EnchantmentHelper.set(enchantments, result);
-                    NbtCompound loyaltyData = result.getOrCreateSubNbt(LoyalTrident.MOD_NBT_KEY);
-                    loyaltyData.putUuid(LoyalTrident.TRIDENT_OWNER_NBT_KEY, this.player.getUuid());
-                    loyaltyData.putString(LoyalTrident.OWNER_NAME_NBT_KEY, this.player.getEntityName());
-                    return result;
+    @Inject(method = "updateResult", at = @At("RETURN"))
+    private void impaled$updateResult(CallbackInfo ci) {
+        ItemStack item = this.input.getStack(1);
+        ItemStack upgradeItem = this.input.getStack(2);
+        if (item.isIn(SincereLoyalty.TRIDENTS) && upgradeItem.isIn(SincereLoyalty.LOYALTY_CATALYSTS)) {
+            ItemEnchantmentsComponent enchantments = EnchantmentHelper.getEnchantments(item);
+            RegistryEntry<Enchantment> loyaltyEntry = null;
+            int loyaltyLevel = 0;
+            for (RegistryEntry<Enchantment> entry : enchantments.getEnchantments()) {
+                if (entry.matchesKey(Enchantments.LOYALTY)) {
+                    loyaltyEntry = entry;
+                    loyaltyLevel = enchantments.getLevel(entry);
+                    break;
                 }
             }
+            int maxLoyaltyLevel = 3;
+            if (loyaltyEntry != null && loyaltyLevel == maxLoyaltyLevel) {
+                ItemStack result = item.copy();
+                RegistryEntry<Enchantment> finalLoyaltyEntry = loyaltyEntry;
+                EnchantmentHelper.apply(result, builder -> builder.set(finalLoyaltyEntry, maxLoyaltyLevel + 1));
+                NbtUtil.modifySubNbt(result, LoyalTrident.MOD_NBT_KEY, loyaltyData -> {
+                    loyaltyData.putUuid(LoyalTrident.TRIDENT_OWNER_NBT_KEY, this.player.getUuid());
+                    loyaltyData.putString(LoyalTrident.OWNER_NAME_NBT_KEY, this.player.getNameForScoreboard());
+                });
+                this.output.setStack(0, result);
+            }
         }
-        return initialResult;
     }
 }

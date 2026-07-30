@@ -3,12 +3,14 @@ package ladysnake.impaled.common.item;
 import ladysnake.impaled.common.damage.HellforkHeatDamageSource;
 import ladysnake.impaled.common.entity.ImpaledTridentEntity;
 import ladysnake.impaled.common.init.ImpaledItems;
+import ladysnake.sincereloyalty.NbtUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.particle.ParticleTypes;
@@ -22,7 +24,7 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 
 public class HellforkItem extends ImpaledTridentItem {
-    public HellforkItem(Settings settings, EntityType<? extends ImpaledTridentEntity> entityType) {
+    public HellforkItem(Item.Settings settings, EntityType<? extends ImpaledTridentEntity> entityType) {
         super(settings, entityType);
     }
 
@@ -43,7 +45,7 @@ public class HellforkItem extends ImpaledTridentItem {
 
         if (user instanceof PlayerEntity player && user.isUsingRiptide() && stack.getItem() == ImpaledItems.SOULFORK) {
             if (player.experienceLevel <= 0) {
-                user.damage(HellforkHeatDamageSource.HELLFORK_HEAT, 2f);
+                user.damage(HellforkHeatDamageSource.create(world), 2f);
                 user.playSound(SoundEvents.ENTITY_PLAYER_HURT, 1.0f, 1.0f);
             } else {
                 player.addExperienceLevels(-1);
@@ -51,7 +53,7 @@ public class HellforkItem extends ImpaledTridentItem {
             if (world instanceof ServerWorld serverWorld) {
                 serverWorld.spawnParticles(ParticleTypes.SOUL, user.getX(), user.getY(), user.getZ(), 20, user.getRandom().nextFloat(), user.getRandom().nextGaussian(), user.getRandom().nextFloat(), user.getRandom().nextFloat() / 10f);
             }
-            user.playSound(SoundEvents.PARTICLE_SOUL_ESCAPE, 5.0f, 1.0f);
+            user.playSound(SoundEvents.PARTICLE_SOUL_ESCAPE.value(), 5.0f, 1.0f);
         }
     }
 
@@ -60,7 +62,7 @@ public class HellforkItem extends ImpaledTridentItem {
         ItemStack itemStack = user.getStackInHand(hand);
         if (itemStack.getDamage() >= itemStack.getMaxDamage() - 1) {
             return TypedActionResult.fail(itemStack);
-        } else if (EnchantmentHelper.getRiptide(itemStack) > 0 && !user.isInLava() && !user.isOnFire() && !(itemStack.hasNbt() && itemStack.getItem() == ImpaledItems.SOULFORK)) {
+        } else if (EnchantmentHelper.getTridentSpinAttackStrength(itemStack, user) > 0 && !user.isInLava() && !user.isOnFire() && itemStack.getItem() != ImpaledItems.SOULFORK) {
             return TypedActionResult.fail(itemStack);
         } else {
             user.setCurrentHand(hand);
@@ -72,9 +74,9 @@ public class HellforkItem extends ImpaledTridentItem {
     public ActionResult useOnBlock(ItemUsageContext context) {
         if ((context.getWorld().getBlockState(context.getBlockPos()).getBlock() == Blocks.SOUL_CAMPFIRE || context.getWorld().getBlockState(context.getBlockPos()).getBlock() == Blocks.SOUL_LANTERN || context.getWorld().getBlockState(context.getBlockPos()).getBlock() == Blocks.SOUL_TORCH || context.getWorld().getBlockState(context.getBlockPos()).getBlock() == Blocks.SOUL_WALL_TORCH) && context.getStack().getItem() == ImpaledItems.HELLFORK) {
             ItemStack soulfork = new ItemStack(ImpaledItems.SOULFORK, context.getStack().getCount());
-            soulfork.setNbt(context.getStack().getNbt());
+            NbtUtil.setNbt(soulfork, NbtUtil.getNbt(context.getStack()));
             context.getWorld().playSound(context.getPlayer().getX(), context.getPlayer().getY(), context.getPlayer().getZ(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 1.0f, 1.0f, false);
-            context.getWorld().playSound(context.getPlayer().getX(), context.getPlayer().getY(), context.getPlayer().getZ(), SoundEvents.PARTICLE_SOUL_ESCAPE, SoundCategory.PLAYERS, 1.0f, 1.0f, false);
+            context.getWorld().playSound(context.getPlayer().getX(), context.getPlayer().getY(), context.getPlayer().getZ(), SoundEvents.PARTICLE_SOUL_ESCAPE.value(), SoundCategory.PLAYERS, 1.0f, 1.0f, false);
             context.getWorld().playSound(context.getPlayer().getX(), context.getPlayer().getY(), context.getPlayer().getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.PLAYERS, 1.0f, 1.0f, false);
 
             context.getPlayer().setStackInHand(context.getHand(), soulfork);
@@ -103,9 +105,9 @@ public class HellforkItem extends ImpaledTridentItem {
             return ActionResult.SUCCESS;
         } else if ((context.getWorld().getBlockState(context.getBlockPos()).getBlock() == Blocks.CAMPFIRE || context.getWorld().getBlockState(context.getBlockPos()).getBlock() == Blocks.LANTERN || context.getWorld().getBlockState(context.getBlockPos()).getBlock() == Blocks.TORCH || context.getWorld().getBlockState(context.getBlockPos()).getBlock() == Blocks.WALL_TORCH) && context.getStack().getItem() == ImpaledItems.SOULFORK) {
             ItemStack hellfork = new ItemStack(ImpaledItems.HELLFORK, context.getStack().getCount());
-            hellfork.setNbt(context.getStack().getNbt());
+            NbtUtil.setNbt(hellfork, NbtUtil.getNbt(context.getStack()));
             context.getWorld().playSound(context.getPlayer().getX(), context.getPlayer().getY(), context.getPlayer().getZ(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 1.0f, 1.0f, false);
-            context.getWorld().playSound(context.getPlayer().getX(), context.getPlayer().getY(), context.getPlayer().getZ(), SoundEvents.PARTICLE_SOUL_ESCAPE, SoundCategory.PLAYERS, 1.0f, 0.8f, false);
+            context.getWorld().playSound(context.getPlayer().getX(), context.getPlayer().getY(), context.getPlayer().getZ(), SoundEvents.PARTICLE_SOUL_ESCAPE.value(), SoundCategory.PLAYERS, 1.0f, 0.8f, false);
             context.getWorld().playSound(context.getPlayer().getX(), context.getPlayer().getY(), context.getPlayer().getZ(), SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE, SoundCategory.PLAYERS, 1.0f, 0.8f, false);
 
             context.getPlayer().setStackInHand(context.getHand(), hellfork);

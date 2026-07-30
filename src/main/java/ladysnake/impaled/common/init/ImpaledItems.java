@@ -6,8 +6,10 @@ import ladysnake.impaled.common.entity.ImpaledTridentEntity;
 import ladysnake.impaled.common.item.*;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.block.dispenser.ProjectileDispenserBehavior;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.TridentItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
@@ -30,12 +32,19 @@ public class ImpaledItems {
         ELDER_GUARDIAN_EYE = registerItem(new Item((new Item.Settings()).rarity(Rarity.UNCOMMON)), "elder_guardian_eye");
         ANCIENT_TRIDENT = registerItem(new Item((new Item.Settings()).rarity(Rarity.UNCOMMON).fireproof()), "ancient_trident");
 
-        PITCHFORK = registerTrident(new PitchforkItem(new Item.Settings().maxDamage(150), ImpaledEntityTypes.PITCHFORK), "pitchfork", true);
-        HELLFORK = registerTrident(new HellforkItem(new Item.Settings().maxDamage(325).fireproof(), ImpaledEntityTypes.HELLFORK), "hellfork", true);
-        SOULFORK = registerTrident(new HellforkItem(new Item.Settings().maxDamage(325).fireproof(), ImpaledEntityTypes.SOULFORK), "soulfork", true);
-        ELDER_TRIDENT = registerTrident(new ElderTridentItem(new Item.Settings().maxDamage(250), ImpaledEntityTypes.ELDER_TRIDENT), "elder_trident", true);
-        ATLAN = registerTrident(new AtlanItem(new Item.Settings().maxDamage(250), ImpaledEntityTypes.ATLAN), "atlan", true);
+        PITCHFORK = registerTrident(new PitchforkItem(tridentSettings(150), ImpaledEntityTypes.PITCHFORK), "pitchfork", true);
+        HELLFORK = registerTrident(new HellforkItem(tridentSettings(325).fireproof(), ImpaledEntityTypes.HELLFORK), "hellfork", true);
+        SOULFORK = registerTrident(new HellforkItem(tridentSettings(325).fireproof(), ImpaledEntityTypes.SOULFORK), "soulfork", true);
+        ELDER_TRIDENT = registerTrident(new ElderTridentItem(tridentSettings(250), ImpaledEntityTypes.ELDER_TRIDENT), "elder_trident", true);
+        ATLAN = registerTrident(new AtlanItem(tridentSettings(250), ImpaledEntityTypes.ATLAN), "atlan", true);
         MAELSTROM = registerItem(new MaelstromItem(new Item.Settings().maxDamage(80)), "maelstrom");
+    }
+
+    private static Item.Settings tridentSettings(int maxDamage) {
+        return new Item.Settings()
+                .maxDamage(maxDamage)
+                .component(DataComponentTypes.TOOL, TridentItem.createToolComponent())
+                .attributeModifiers(TridentItem.createAttributeModifiers());
     }
 
     public static ImpaledTridentItem registerTrident(ImpaledTridentItem item, String name, boolean registerDispenserBehavior) {

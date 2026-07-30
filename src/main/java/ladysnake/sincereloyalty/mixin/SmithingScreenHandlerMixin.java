@@ -79,6 +79,8 @@ public abstract class SmithingScreenHandlerMixin extends ForgingScreenHandler {
                     loyaltyData.putString(LoyalTrident.OWNER_NAME_NBT_KEY, this.player.getNameForScoreboard());
                 });
                 this.output.setStack(0, result);
+            } else {
+                this.output.setStack(0, ItemStack.EMPTY);
             }
         }
     }

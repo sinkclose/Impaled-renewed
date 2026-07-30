@@ -1,0 +1,25 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ladysnake.impaled.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "impaled.refmap.json",
+  "client": [
+    "InGameHudMixin",
+    "InGameOverlayRendererMixin",
+    "impaling.EntityRendererMixin"
+  ],
+  "mixins": [
+    "EntityMixin",
+    "LivingEntityMixin",
+    "PlayerEntityTargetingMixin",
+    "TridentEntityAccessor",
+    "TridentRiptideFeatureRendererMixin",
+    "impaling.MobEntityMixin",
+    "impaling.PlayerEntityMixin",
+    "impaling.TridentEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

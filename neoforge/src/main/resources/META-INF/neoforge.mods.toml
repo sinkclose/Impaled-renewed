@@ -1,0 +1,31 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="ARR"
+
+[[mods]]
+modId="impaled"
+version="${version}"
+displayName="Impaled"
+description='''
+Adds trident variants and a Sincere Loyalty enchantment upgrade for tridents.
+'''
+
+[[mixins]]
+config = "impaled.mixins.json"
+
+[[mixins]]
+config = "sincereloyalty.mixins.json"
+
+[[dependencies.impaled]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.impaled]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21.1,1.22)"
+    ordering="NONE"
+    side="BOTH"

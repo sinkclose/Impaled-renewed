@@ -1,7 +1,0 @@
-{
-  "type": "minecraft:smithing_transform",
-  "template": {"item": "minecraft:netherite_upgrade_smithing_template"},
-  "base": {"tag": "impaled:tridents"},
-  "addition": {"tag": "impaled:loyalty_catalysts"},
-  "result": {"id": "minecraft:trident"}
-}

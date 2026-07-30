@@ -1,0 +1,69 @@
+package ladysnake.impaled.client;
+
+import ladysnake.impaled.client.render.entity.ImpaledTridentEntityRenderer;
+import ladysnake.impaled.client.render.entity.model.ImpaledTridentEntityModel;
+import ladysnake.impaled.common.Impaled;
+import ladysnake.impaled.common.init.ImpaledEntityTypes;
+import ladysnake.impaled.common.init.ImpaledItems;
+import ladysnake.impaled.common.item.ImpaledTridentItem;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.object.builder.v1.client.model.FabricModelPredicateProviderRegistry;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.client.render.entity.model.EntityModelLayer;
+import net.minecraft.client.render.entity.model.EntityModelLayers;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Identifier;
+
+public class ImpaledClient implements ClientModInitializer {
+    public static final EntityModelLayer ATLAN = new EntityModelLayer(Identifier.of(Impaled.MODID, "atlan"), "main");
+
+    @Override
+    public void onInitializeClient() {
+        EntityModelLayerRegistry.registerModelLayer(ATLAN, ImpaledTridentEntityModel::getAtlanTexturedModelData);
+
+        ModelLoadingPlugin.register(ctx -> {
+            for (ImpaledTridentItem item : ImpaledItems.ALL_TRIDENTS) {
+                Identifier tridentId = Registries.ITEM.getId(item);
+                ctx.addModels(Identifier.of(tridentId.getNamespace(), "item/" + tridentId.getPath() + "_in_inventory"));
+            }
+        });
+
+        for (ImpaledTridentItem item : ImpaledItems.ALL_TRIDENTS) {
+            Identifier tridentId = Registries.ITEM.getId(item);
+            Identifier texture = Identifier.of(tridentId.getNamespace(), "textures/entity/" + tridentId.getPath() + ".png");
+
+            EntityModelLayer modelLayer = item == ImpaledItems.ATLAN ? ATLAN : EntityModelLayers.TRIDENT;
+            ImpaledTridentItemRenderer tridentItemRenderer = new ImpaledTridentItemRenderer(tridentId, texture, modelLayer);
+            ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(tridentItemRenderer);
+            BuiltinItemRendererRegistry.INSTANCE.register(item, tridentItemRenderer);
+            EntityRendererRegistry.register(item.getEntityType(), ctx -> new ImpaledTridentEntityRenderer(ctx, texture, modelLayer));
+
+            FabricModelPredicateProviderRegistry.register(item, Identifier.of("throwing"), (stack, world, entity, seed) -> entity != null && entity.isUsingItem() && entity.getActiveItem() == stack ? 1.0F : 0.0F);
+        }
+
+        // Add items to groups
+        ItemGroupEvents.modifyEntriesEvent(RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.ofVanilla("ingredients"))).register((content) -> {
+            content.add(ImpaledItems.ELDER_GUARDIAN_EYE);
+            content.add(ImpaledItems.ANCIENT_TRIDENT);
+        });
+        ItemGroupEvents.modifyEntriesEvent(RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.ofVanilla("combat"))).register((content) -> {
+            content.add(ImpaledItems.PITCHFORK);
+            content.add(ImpaledItems.HELLFORK);
+            content.add(ImpaledItems.SOULFORK);
+            content.add(ImpaledItems.ELDER_TRIDENT);
+            content.add(ImpaledItems.ATLAN);
+            content.add(ImpaledItems.MAELSTROM);
+        });
+
+        EntityRendererRegistry.register(ImpaledEntityTypes.GUARDIAN_TRIDENT, ctx -> new ImpaledTridentEntityRenderer(ctx, Identifier.of(Impaled.MODID, "textures/entity/guardian_trident.png"), EntityModelLayers.TRIDENT));
+    }
+}

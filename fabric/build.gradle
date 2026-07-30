@@ -1,0 +1,47 @@
+plugins {
+    id 'dev.architectury.loom'
+}
+
+sourceSets {
+    main {
+        java.srcDir rootProject.file('common/src/main/java')
+        resources.srcDir rootProject.file('common/src/main/resources')
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    compileOnly "io.github.llamalad7:mixinextras-common:0.2.2"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:0.2.2"
+    compileOnly "io.github.llamalad7:mixinextras-fabric:0.2.2"
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+loom {
+    mixin {
+        useLegacyMixinAp = true
+        defaultRefmapName = "impaled.refmap.json"
+    }
+    runs {
+        client {
+            environment = "client"
+            configName = "Minecraft Client"
+            runDir = "run/client"
+        }
+        server {
+            environment = "server"
+            configName = "Minecraft Server"
+            runDir = "run/server"
+        }
+    }
+}

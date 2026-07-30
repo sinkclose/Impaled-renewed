@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "combat",
+  "pattern": [
+    " BB",
+    " SB",
+    "S  "
+  ],
+  "key": {
+    "S": {"item": "minecraft:stick"},
+    "B": {"item": "minecraft:iron_bars"}
+  },
+  "result": {
+    "count": 1,
+    "id": "impaled:pitchfork"
+  }
+}

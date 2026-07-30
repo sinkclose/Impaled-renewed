@@ -1,0 +1,9 @@
+{
+  "type": "impaled:bastion_ancient_trident",
+  "conditions": [
+    {
+      "condition": "neoforge:loot_table_id",
+      "id": "minecraft:chests/bastion_treasure"
+    }
+  ]
+}

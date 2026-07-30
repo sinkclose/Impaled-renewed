@@ -1,70 +1,37 @@
 plugins {
-	id 'fabric-loom' version "1.17.17"
-	id 'java'
+    id 'dev.architectury.loom' version "${architectury_loom_version}" apply false
 }
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
-}
+subprojects {
+    apply plugin: 'java'
 
-base.archivesName = project.archives_base_name
-version = project.mod_version
-group = project.maven_group
+    group = project.maven_group
+    version = project.mod_version
 
-repositories {
-	mavenCentral()
-	maven { url "https://maven.fabricmc.net/" }
-	maven { url "https://maven.quiltmc.org/repository/release" }
-	maven { url "https://maven.parchmentmc.org" }
-	maven {
-		url "https://jitpack.io"
-		content { includeGroupByRegex "io\\.github\\.llamalad7\\..*" }
-	}
-}
+    base {
+        archivesName = project.archives_base_name + '-' + project.name
+    }
 
-dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+        withSourcesJar()
+    }
 
-	compileOnly "io.github.llamalad7:mixinextras-common:0.2.2"
-	annotationProcessor "io.github.llamalad7:mixinextras-common:0.2.2"
-	compileOnly "io.github.llamalad7:mixinextras-fabric:0.2.2"
-}
+    jar {
+        from rootProject.file('LICENSE')
+    }
 
-processResources {
-	inputs.property "version", project.version
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
-}
-
-java {
-	withSourcesJar()
-}
-
-jar {
-	from "LICENSE"
-}
-
-loom {
-	mixin {
-		useLegacyMixinAp = true
-		defaultRefmapName = "impaled.refmap.json"
-	}
-	runs {
-		client {
-			environment = "client"
-			configName = "Minecraft Client"
-			runDir = "run/client"
-		}
-		server {
-			environment = "server"
-			configName = "Minecraft Server"
-			runDir = "run/server"
-		}
-	}
+    repositories {
+        mavenCentral()
+        maven { url "https://maven.fabricmc.net/" }
+        maven { url "https://maven.neoforged.net/releases" }
+        maven { url "https://maven.parchmentmc.org" }
+        maven { url "https://maven.architectury.dev/" }
+        maven {
+            url "https://jitpack.io"
+            content { includeGroupByRegex "io\\.github\\.llamalad7\\..*" }
+        }
+    }
 }

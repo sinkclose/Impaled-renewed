@@ -28,7 +28,7 @@ public final class ImpaledNeoForgeClient {
         modBus.addListener(ImpaledNeoForgeClient::registerAdditionalModels);
         modBus.addListener(ImpaledNeoForgeClient::clientSetup);
 
-        SincereLoyaltyNeoForgeClient.register(modBus);
+        SincereLoyaltyNeoForgeClient.register();
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -57,15 +57,16 @@ public final class ImpaledNeoForgeClient {
         );
     }
 
+    private static final Item[] TRIDENTS = {
+            ImpaledNeoForge.PITCHFORK.get(),
+            ImpaledNeoForge.HELLFORK.get(),
+            ImpaledNeoForge.SOULFORK.get(),
+            ImpaledNeoForge.ELDER_TRIDENT.get(),
+            ImpaledNeoForge.ATLAN.get()
+    };
+
     private static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
-        Item[] tridents = {
-                ImpaledNeoForge.PITCHFORK.get(),
-                ImpaledNeoForge.HELLFORK.get(),
-                ImpaledNeoForge.SOULFORK.get(),
-                ImpaledNeoForge.ELDER_TRIDENT.get(),
-                ImpaledNeoForge.ATLAN.get()
-        };
-        for (Item item : tridents) {
+        for (Item item : TRIDENTS) {
             Identifier id = Registries.ITEM.getId(item);
             event.register(new ModelIdentifier(Identifier.of(id.getNamespace(), "item/" + id.getPath() + "_in_inventory"), "standalone"));
         }
@@ -73,14 +74,7 @@ public final class ImpaledNeoForgeClient {
 
     private static void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            Item[] tridents = {
-                    ImpaledNeoForge.PITCHFORK.get(),
-                    ImpaledNeoForge.HELLFORK.get(),
-                    ImpaledNeoForge.SOULFORK.get(),
-                    ImpaledNeoForge.ELDER_TRIDENT.get(),
-                    ImpaledNeoForge.ATLAN.get()
-            };
-            for (Item item : tridents) {
+            for (Item item : TRIDENTS) {
                 // "throwing" model predicate (the _throwing variant shown while charging/throwing)
                 ModelPredicateProviderRegistry.register(item, Identifier.of("throwing"),
                         (stack, world, entity, seed) -> entity != null && entity.isUsingItem() && entity.getActiveItem() == stack ? 1.0F : 0.0F);

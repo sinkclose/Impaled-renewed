@@ -19,7 +19,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
  */
 public final class SincereLoyaltyNeoForgeClient {
 
-    public static void register(IEventBus modBus) {
+    public static void register() {
         NeoForge.EVENT_BUS.addListener(SincereLoyaltyNeoForgeClient::onClientTick);
     }
 

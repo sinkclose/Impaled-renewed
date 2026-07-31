@@ -48,7 +48,7 @@ public abstract class TridentEntry {
                 default: // pass
             }
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            // ignore malformed NBT entries
         }
         return null;
     }

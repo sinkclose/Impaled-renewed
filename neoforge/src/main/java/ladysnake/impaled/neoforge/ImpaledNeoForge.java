@@ -16,7 +16,6 @@ import ladysnake.impaled.common.item.HellforkItem;
 import ladysnake.impaled.common.item.MaelstromItem;
 import ladysnake.impaled.common.item.PitchforkItem;
 import ladysnake.sincereloyalty.SincereLoyaltyNeoForge;
-import ladysnake.impaled.neoforge.client.ImpaledNeoForgeClient;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.block.dispenser.ProjectileDispenserBehavior;
 import net.minecraft.entity.EntityType;
@@ -76,7 +75,10 @@ public class ImpaledNeoForge {
         modBus.addListener(this::commonSetup);
         modBus.addListener(this::buildCreativeTabs);
         SincereLoyaltyNeoForge.register(modBus);
-        ImpaledNeoForgeClient.register(modBus);
+        // Client setup is loaded lazily to avoid classloading client classes on a dedicated server.
+        if (net.neoforged.fml.loading.FMLEnvironment.dist.isClient()) {
+            ladysnake.impaled.neoforge.client.ImpaledNeoForgeClient.register(modBus);
+        }
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {

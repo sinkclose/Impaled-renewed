@@ -40,4 +40,11 @@ public abstract class PlayerInventoryMixin {
             cir.setReturnValue(true);
         }
     }
+
+    @Inject(method = "insertStack(Lnet/minecraft/item/ItemStack;)Z", at = @At("RETURN"))
+    private void finishFallbackInsert(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
+        if (cir.getReturnValueZ()) {
+            BetterLoyalty.finishReturn(stack, this.player);
+        }
+    }
 }

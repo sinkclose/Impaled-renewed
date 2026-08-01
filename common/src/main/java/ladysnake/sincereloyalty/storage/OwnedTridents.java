@@ -42,28 +42,31 @@ public final class OwnedTridents implements Iterable<TridentEntry> {
         this.ownedTridents = new HashMap<>();
     }
 
-    public void storeTridentPosition(UUID tridentUuid, UUID tridentEntityUuid, BlockPos lastPos) {
+    public boolean storeTridentPosition(UUID tridentUuid, UUID tridentEntityUuid, BlockPos lastPos) {
         TridentEntry entry = this.ownedTridents.get(tridentUuid);
         if (entry instanceof WorldTridentEntry) {
-            ((WorldTridentEntry) entry).updateLastPos(tridentEntityUuid, lastPos);
+            return ((WorldTridentEntry) entry).updateLastPos(tridentEntityUuid, lastPos);
         } else {
-            this.ownedTridents.put(tridentUuid, new WorldTridentEntry(this.parentStorage.world, tridentUuid, tridentUuid, lastPos));
+            this.ownedTridents.put(tridentUuid, new WorldTridentEntry(this.parentStorage.world, tridentUuid, tridentEntityUuid, lastPos));
+            return true;
         }
     }
 
-    public void storeTridentHolder(UUID tridentUuid, PlayerEntity holder) {
+    public boolean storeTridentHolder(UUID tridentUuid, PlayerEntity holder) {
         TridentEntry entry = this.ownedTridents.get(tridentUuid);
         if (!(entry instanceof InventoryTridentEntry) || !((InventoryTridentEntry) entry).isHolder(holder)) {
             this.addEntry(new InventoryTridentEntry(this.parentStorage.world, tridentUuid, holder.getUuid()));
+            return true;
         }
+        return false;
     }
 
     private void addEntry(@NotNull TridentEntry entry) {
         this.ownedTridents.put(entry.getTridentUuid(), entry);
     }
 
-    public void clearTridentPosition(UUID tridentUuid) {
-        this.ownedTridents.remove(tridentUuid);
+    public boolean clearTridentPosition(UUID tridentUuid) {
+        return this.ownedTridents.remove(tridentUuid) != null;
     }
 
     @NotNull

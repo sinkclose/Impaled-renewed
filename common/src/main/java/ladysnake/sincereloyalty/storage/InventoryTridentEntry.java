@@ -43,6 +43,7 @@ public class InventoryTridentEntry extends TridentEntry {
     @Override
     public NbtCompound toNbt(NbtCompound nbt) {
         super.toNbt(nbt);
+        nbt.putString("type", "inventory");
         nbt.putUuid("player_uuid", this.playerUuid);
         return nbt;
     }
@@ -64,7 +65,7 @@ public class InventoryTridentEntry extends TridentEntry {
                     if (loyaltyData.getUuid(LoyalTrident.TRIDENT_UUID_NBT_KEY).equals(this.tridentUuid)) {
                         TridentEntity tridentEntity = LoyalTrident.spawnTridentForStack(player, stack);
                         if (tridentEntity != null) {
-                            player.getInventory().removeStack(slot);
+                            player.getInventory().removeStack(slot, 1);
                             return tridentEntity;
                         }
                     }

@@ -18,7 +18,6 @@ public abstract class TridentEntityMixin {
 
     @WrapOperation(method = "onEntityHit", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;damage(Lnet/minecraft/entity/damage/DamageSource;F)Z"))
     private boolean impaled$addImpalingDamage(Entity target, DamageSource source, float damage, Operation<Boolean> original) {
-        float bonus = BetterImpaling.getAttackDamage(this.getWeaponStack(), target, target.getWorld());
-        return original.call(target, source, damage + bonus);
+        return original.call(target, source, damage + BetterImpaling.getAttackDamage(this.getWeaponStack(), target, target.getWorld()));
     }
 }

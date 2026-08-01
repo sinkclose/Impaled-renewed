@@ -4,18 +4,7 @@
   "package": "ladysnake.sincereloyalty.mixin",
   "compatibilityLevel": "JAVA_21",
   "refmap": "impaled.refmap.json",
-  "mixins": [
-    "AnvilScreenHandlerMixin",
-    "ItemEntityMixin",
-    "ItemMixin",
-    "PlayerEntityMixin",
-    "PlayerInventoryMixin",
-    "ProjectileAccessor",
-    "ServerPlayNetworkHandlerMixin",
-    "SmithingScreenHandlerMixin",
-    "TridentEntityMixin",
-    "TridentItemMixin"
-  ],
+  "mixins": [],
   "client": [
     "client.MinecraftClientMixin",
     "client.PlayerEntityRendererMixin",

@@ -93,9 +93,8 @@ public interface LoyalTrident {
     @Nullable
     static TridentEntity spawnTridentForStack(Entity thrower, ItemStack tridentStack) {
         NbtCompound loyaltyData = NbtUtil.getSubNbt(tridentStack, MOD_NBT_KEY);
-        if (loyaltyData != null) {
+        if (loyaltyData != null && loyaltyData.containsUuid(TRIDENT_OWNER_NBT_KEY)) {
             UUID ownerUuid = loyaltyData.getUuid(TRIDENT_OWNER_NBT_KEY);
-            if (ownerUuid != null) {
                 MinecraftServer server = thrower.getServer();
                 PlayerEntity owner = server == null ? null : server.getPlayerManager().getPlayer(ownerUuid);
                 if (owner != null) {
@@ -112,10 +111,10 @@ public interface LoyalTrident {
                     trident.pickupType = PersistentProjectileEntity.PickupPermission.ALLOWED;
                     trident.setVelocity(thrower.getVelocity());
                     trident.copyPositionAndRotation(thrower);
-                    thrower.getWorld().spawnEntity(trident);
-                    return trident;
+                    if (thrower.getWorld().spawnEntity(trident)) {
+                        return trident;
+                    }
                 }
-            }
         }
         return null;
     }

@@ -1,14 +1,14 @@
 package ladysnake.impaled.common.entity;
 
-import ladysnake.impaled.common.IPlayerTargeting;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.TridentEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -40,30 +40,44 @@ public class ElderTridentEntity extends ImpaledTridentEntity {
 
     @Override
     public void tick() {
+        super.tick();
+
+        if (this.getWorld().isClient) {
+            return;
+        }
+
         if (this.inGround) {
             this.setDealtDamage();
         }
+
         if (!this.hasSearchedTarget) {
             if (this.getOwner() != null) {
-                if (this.getOwner() instanceof IPlayerTargeting targeting) {
-                    this.tridentTarget = targeting.mialeeMisc$getLastTarget();
-                } else if (this.getOwner() instanceof MobEntity mob) {
-                    this.tridentTarget = mob.getTarget();
+                Vec3d rotationVec = this.getOwner().getRotationVector();
+                Box box = new Box(this.getX() - 1, this.getY() - 1, this.getZ() - 1, this.getX() + 1, this.getY() + 1, this.getZ() + 1).expand(96 * rotationVec.getX(), 96 * rotationVec.getY(), 96 * rotationVec.getZ());
+                List<Entity> possibleTargets = this.getWorld().getEntitiesByClass(Entity.class, box, (entity) -> entity instanceof LivingEntity && entity.isAlive() && entity != this.getOwner() && !(entity instanceof TameableEntity && ((TameableEntity) entity).isTamed()) && !(entity instanceof TridentEntity));
+
+                double max = 0.3;
+                for (Entity possibleTarget : possibleTargets) {
+                    Vec3d vecDist = possibleTarget.getPos().subtract(this.getOwner().getPos());
+                    double dotProduct = vecDist.normalize().dotProduct(rotationVec);
+                    if (dotProduct > max) {
+                        this.tridentTarget = possibleTarget;
+                        max = dotProduct;
+                    }
                 }
+
                 this.hasSearchedTarget = true;
             }
         } else {
             if (!this.hasDealtDamage()) {
                 if (this.tridentTarget != null && this.tridentTarget.isAlive()) {
                     Vec3d vec3d = new Vec3d(this.tridentTarget.getX() - this.getX(), this.tridentTarget.getEyeY() - this.getY(), this.tridentTarget.getZ() - this.getZ());
-                    this.setVelocity(this.getVelocity().multiply(0.9D).add(vec3d.normalize().multiply(0.25D)));
+                    this.setPos(this.getX(), this.getY() + vec3d.y * 0.015D * 5.0, this.getZ());
+                    this.setVelocity(this.getVelocity().multiply(0.95D).add(vec3d.normalize().multiply(0.25D)));
                 }
-                this.setNoGravity(this.tridentTarget != null && this.tridentTarget.isAlive());
-            } else {
-                this.setNoGravity(false);
             }
         }
-        super.tick();
+
         Box box = this.getBoundingBox();
         List<Entity> list = this.getWorld().getOtherEntities(this, box, e -> true);
         for (Entity entity : list) {
@@ -76,7 +90,6 @@ public class ElderTridentEntity extends ImpaledTridentEntity {
 
     @Override
     protected void setDealtDamage() {
-        this.setNoGravity(false);
         this.tridentTarget = null;
         super.setDealtDamage();
     }
@@ -97,7 +110,7 @@ public class ElderTridentEntity extends ImpaledTridentEntity {
     public void onPlayerCollision(PlayerEntity player) {
         super.onPlayerCollision(player);
         Entity entity = this.getOwner();
-        if (entity == null || entity.getUuid() == player.getUuid()) {
+        if (entity == null || entity.getUuid().equals(player.getUuid())) {
             for (ItemStack stack : this.fetchedStacks) {
                 if (!player.getInventory().insertStack(stack)) {
                     this.dropStack(stack);

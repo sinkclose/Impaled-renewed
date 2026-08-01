@@ -11,21 +11,21 @@ Adds trident variants and a Sincere Loyalty enchantment upgrade for tridents.
 '''
 
 [[mixins]]
-config = "impaled.mixins.json"
+config = "impaled-neoforge.mixins.json"
 
 [[mixins]]
-config = "sincereloyalty.mixins.json"
+config = "sincereloyalty-neoforge.mixins.json"
 
 [[dependencies.impaled]]
     modId="neoforge"
     type="required"
-    versionRange="[21.1,)"
+    versionRange="[21.1,21.2)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.impaled]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21.1,1.22)"
+    versionRange="[1.21.1]"
     ordering="NONE"
     side="BOTH"

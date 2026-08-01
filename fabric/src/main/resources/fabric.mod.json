@@ -19,8 +19,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "ladysnake.impaled.fabric.ImpaledFabric",
-      "ladysnake.sincereloyalty.SincereLoyaltyFabric"
+      "ladysnake.impaled.fabric.ImpaledFabric"
     ],
     "client": [
       "ladysnake.impaled.client.ImpaledClient",
@@ -28,12 +27,12 @@
     ]
   },
   "mixins": [
-    "impaled.mixins.json",
-    "sincereloyalty.mixins.json"
+    "impaled-fabric.mixins.json",
+    "sincereloyalty-fabric.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.16.0",
-    "minecraft": "~1.21.1",
+    "minecraft": "=1.21.1",
     "java": ">=21",
     "fabric-api": ">=0.116.0"
   }

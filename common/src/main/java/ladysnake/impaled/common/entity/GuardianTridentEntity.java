@@ -5,6 +5,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.TridentEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundEvents;
@@ -18,8 +19,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class GuardianTridentEntity extends ElderTridentEntity {
-    private int timeSinceTracking = 40;
-
     public GuardianTridentEntity(EntityType<? extends ElderTridentEntity> entityType, World world) {
         super(entityType, world);
     }
@@ -43,6 +42,10 @@ public class GuardianTridentEntity extends ElderTridentEntity {
 
     @Override
     public void tick() {
+        if (this.getWorld().isClient) {
+            super.tick();
+            return;
+        }
         if (this.hasDealtDamage()) {
             if (this.isSubmergedInWater()) {
                 this.playSound(SoundEvents.ENTITY_GUARDIAN_DEATH, 1.0f, 1.0f);
@@ -54,50 +57,34 @@ public class GuardianTridentEntity extends ElderTridentEntity {
                 this.getWorld().addParticle(ParticleTypes.BUBBLE_POP, this.getX() + this.random.nextGaussian() / 10, this.getY() + this.random.nextGaussian() / 10, this.getZ() + this.random.nextGaussian() / 10, this.random.nextGaussian() / 10, Math.abs(this.random.nextGaussian() / 10), this.random.nextGaussian() / 10);
             }
 
-            this.setNoGravity(false);
             this.remove(RemovalReason.DISCARDED);
             return;
         }
 
-        if (this.timeSinceTracking != -1) {
-            this.timeSinceTracking++;
-        }
+        if (!this.hasSearchedTarget) {
+            if (this.getOwner() != null) {
+                Vec3d rotationVec = this.getOwner().getRotationVector();
+                Box box = new Box(this.getX() - 1, this.getY() - 1, this.getZ() - 1, this.getX() + 1, this.getY() + 1, this.getZ() + 1).expand(96 * rotationVec.getX(), 96 * rotationVec.getY(), 96 * rotationVec.getZ());
+                List<Entity> possibleTargets = this.getWorld().getEntitiesByClass(Entity.class, box, (entity) -> entity instanceof LivingEntity && entity.isAlive() && entity != this.getOwner() && !(entity instanceof TameableEntity && ((TameableEntity) entity).isTamed()) && !(entity instanceof TridentEntity));
+                List<Entity> validTargets = new ArrayList<>();
 
-        if (timeSinceTracking >= 40) {
-            Vec3d rotationVec = this.getVelocity().normalize();
-            Box box = new Box(this.getX() - 1, this.getY() - 1, this.getZ() - 1, this.getX() + 1, this.getY() + 1, this.getZ() + 1).expand(96 * rotationVec.getX(), 96 * rotationVec.getY(), 96 * rotationVec.getZ());
-            List<LivingEntity> possibleTargets = getWorld().getEntitiesByClass(LivingEntity.class, box, (entity) -> entity.canHit() && entity != this.getOwner() && !(entity instanceof TameableEntity && ((TameableEntity) entity).isTamed()));
-            List<LivingEntity> validTargets = new ArrayList<>();
-
-            double max = 0.3;
-            for (LivingEntity possibleTarget : possibleTargets) {
-                Vec3d vecDist = possibleTarget.getPos();
-                if (this.getOwner() != null) {
-                    vecDist = vecDist.subtract(this.getOwner().getPos());
-                } else {
-                    vecDist = vecDist.subtract(this.getPos());
+                double max = 0.3;
+                for (Entity possibleTarget : possibleTargets) {
+                    Vec3d vecDist = possibleTarget.getPos().subtract(this.getOwner().getPos());
+                    double dotProduct = vecDist.normalize().dotProduct(rotationVec);
+                    if (dotProduct > max) {
+                        validTargets.add(possibleTarget);
+                    }
                 }
-                double dotProduct = vecDist.normalize().dotProduct(rotationVec);
-                if (dotProduct > max) {
-                    validTargets.add(possibleTarget);
+
+                if (!validTargets.isEmpty()) {
+                    this.tridentTarget = validTargets.get(this.random.nextInt(validTargets.size()));
                 }
-            }
 
-            if (!validTargets.isEmpty()) {
-                this.tridentTarget = validTargets.get(this.random.nextInt(validTargets.size()));
-            }
-
-            if (this.tridentTarget != null) {
-                this.timeSinceTracking = -1;
                 this.hasSearchedTarget = true;
-            } else {
-                this.timeSinceTracking = 0;
             }
-        } else {
-            this.hasSearchedTarget = true;
-            super.tick();
         }
-        this.setNoGravity(this.tridentTarget != null && tridentTarget.isAlive());
+        super.tick();
     }
 
     @Override

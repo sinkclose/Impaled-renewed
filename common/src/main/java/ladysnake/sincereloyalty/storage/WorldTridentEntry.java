@@ -26,6 +26,7 @@ import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -34,6 +35,8 @@ public final class WorldTridentEntry extends TridentEntry {
 
     private UUID tridentEntityUuid;
     private BlockPos lastPos;
+    private @Nullable ChunkPos ticketPos;
+    private @Nullable UUID ticketEntityUuid;
 
     public WorldTridentEntry(ServerWorld world, UUID tridentUuid, UUID tridentEntityUuid, BlockPos lastPos) {
         super(world, tridentUuid);
@@ -50,21 +53,29 @@ public final class WorldTridentEntry extends TridentEntry {
     @Override
     public NbtCompound toNbt(NbtCompound nbt) {
         super.toNbt(nbt);
+        nbt.putString("type", "world");
         nbt.putUuid("trident_entity_uuid", this.tridentEntityUuid);
         nbt.put("last_pos", NbtHelper.fromBlockPos(this.lastPos));
         return nbt;
     }
 
-    public void updateLastPos(UUID tridentEntityUuid, BlockPos pos) {
+    public boolean updateLastPos(UUID tridentEntityUuid, BlockPos pos) {
+        if (this.tridentEntityUuid.equals(tridentEntityUuid) && this.lastPos.equals(pos)) {
+            return false;
+        }
         this.tridentEntityUuid = tridentEntityUuid;
         this.lastPos = pos;
+        return true;
     }
 
     @Override
     public void preloadTrident() {
+        this.releaseTicket();
         ChunkPos pos = new ChunkPos(this.lastPos);
         this.world.getChunk(pos.x, pos.z);  // just loading it
         this.world.getChunkManager().addTicket(TRIDENT_RECALL_TICKET, pos, 0, this.tridentEntityUuid);
+        this.ticketPos = pos;
+        this.ticketEntityUuid = this.tridentEntityUuid;
     }
 
     @Override
@@ -74,6 +85,14 @@ public final class WorldTridentEntry extends TridentEntry {
             return (TridentEntity) trident;
         }
         return null;
+    }
+
+    public void releaseTicket() {
+        if (this.ticketPos != null && this.ticketEntityUuid != null) {
+            this.world.getChunkManager().removeTicket(TRIDENT_RECALL_TICKET, this.ticketPos, 0, this.ticketEntityUuid);
+            this.ticketPos = null;
+            this.ticketEntityUuid = null;
+        }
     }
 
 }

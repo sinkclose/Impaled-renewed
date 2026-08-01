@@ -21,6 +21,7 @@ dependencies {
 }
 
 processResources {
+    exclude "impaled.mixins.json", "sincereloyalty.mixins.json"
     inputs.property "version", project.version
     filesMatching("fabric.mod.json") {
         expand "version": project.version

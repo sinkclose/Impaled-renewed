@@ -43,22 +43,33 @@ public final class SincereLoyaltyFabric {
             ((TridentRecaller) player).updateRecallStatus(newRecallStatus);
             return true;
         }));
-        ServerPlayNetworking.registerGlobalReceiver(RecallTridentsPayload.ID, (payload, context) -> {
+            ServerPlayNetworking.registerGlobalReceiver(RecallTridentsPayload.ID, (payload, context) -> {
             MinecraftServer server = context.server();
             ServerPlayerEntity player = context.player();
             TridentRecaller.RecallStatus requested = payload.status();
 
             server.execute(() -> {
                 LoyalTridentStorage loyalTridentStorage = LoyalTridentStorage.get(player.getServerWorld());
+                if (requested == TridentRecaller.RecallStatus.NONE) {
+                    loyalTridentStorage.releaseTickets(player);
+                    recallingPlayers.remove(player.getUuid());
+                    ((TridentRecaller) player).updateRecallStatus(requested);
+                    return;
+                }
                 TridentRecaller.RecallStatus currentRecallStatus = ((TridentRecaller) player).getCurrentRecallStatus();
                 TridentRecaller.RecallStatus newRecallStatus;
 
                 if (loyalTridentStorage.hasTridents(player)) {
-                    if (currentRecallStatus != requested && requested == TridentRecaller.RecallStatus.RECALLING) {
+                    if (currentRecallStatus == TridentRecaller.RecallStatus.CHARGING
+                            && requested == TridentRecaller.RecallStatus.RECALLING
+                            && !recallingPlayers.containsKey(player.getUuid())) {
                         loyalTridentStorage.loadTridents(player);
                         recallingPlayers.put(player.getUuid(), 4);
                     }
-                    newRecallStatus = requested;
+                    newRecallStatus = requested == TridentRecaller.RecallStatus.RECALLING
+                            && currentRecallStatus != TridentRecaller.RecallStatus.CHARGING
+                            ? currentRecallStatus
+                            : requested;
                 } else {
                     newRecallStatus = TridentRecaller.RecallStatus.NONE;
                 }

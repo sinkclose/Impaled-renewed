@@ -56,7 +56,9 @@ public class ImpaledTridentItem extends TridentItem {
                                 trident.pickupType = PersistentProjectileEntity.PickupPermission.CREATIVE_ONLY;
                             }
 
-                            world.spawnEntity(trident);
+                            if (!world.spawnEntity(trident)) {
+                                return;
+                            }
                             world.playSoundFromEntity(null, trident, registryEntry.value(), SoundCategory.PLAYERS, 1.0F, 1.0F);
                             if (!player.getAbilities().creativeMode) {
                                 player.getInventory().removeOne(stack);

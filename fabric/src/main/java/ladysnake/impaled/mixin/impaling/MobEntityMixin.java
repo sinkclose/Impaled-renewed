@@ -20,7 +20,6 @@ public abstract class MobEntityMixin extends LivingEntity {
 
     @WrapOperation(method = "tryAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;damage(Lnet/minecraft/entity/damage/DamageSource;F)Z"))
     private boolean impaled$addImpalingDamage(Entity target, DamageSource source, float damage, Operation<Boolean> original) {
-        float bonus = BetterImpaling.getAttackDamage(this.getMainHandStack(), target, this.getWorld());
-        return original.call(target, source, damage + bonus);
+        return original.call(target, source, damage + BetterImpaling.getAttackDamage(this.getMainHandStack(), target, this.getWorld()));
     }
 }

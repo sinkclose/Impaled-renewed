@@ -57,16 +57,18 @@ public final class ImpaledNeoForgeClient {
         );
     }
 
-    private static final Item[] TRIDENTS = {
-            ImpaledNeoForge.PITCHFORK.get(),
-            ImpaledNeoForge.HELLFORK.get(),
-            ImpaledNeoForge.SOULFORK.get(),
-            ImpaledNeoForge.ELDER_TRIDENT.get(),
-            ImpaledNeoForge.ATLAN.get()
-    };
+    private static Item[] tridents() {
+        return new Item[]{
+                ImpaledNeoForge.PITCHFORK.get(),
+                ImpaledNeoForge.HELLFORK.get(),
+                ImpaledNeoForge.SOULFORK.get(),
+                ImpaledNeoForge.ELDER_TRIDENT.get(),
+                ImpaledNeoForge.ATLAN.get()
+        };
+    }
 
     private static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
-        for (Item item : TRIDENTS) {
+        for (Item item : tridents()) {
             Identifier id = Registries.ITEM.getId(item);
             event.register(new ModelIdentifier(Identifier.of(id.getNamespace(), "item/" + id.getPath() + "_in_inventory"), "standalone"));
         }
@@ -74,7 +76,7 @@ public final class ImpaledNeoForgeClient {
 
     private static void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            for (Item item : TRIDENTS) {
+            for (Item item : tridents()) {
                 // "throwing" model predicate (the _throwing variant shown while charging/throwing)
                 ModelPredicateProviderRegistry.register(item, Identifier.of("throwing"),
                         (stack, world, entity, seed) -> entity != null && entity.isUsingItem() && entity.getActiveItem() == stack ? 1.0F : 0.0F);

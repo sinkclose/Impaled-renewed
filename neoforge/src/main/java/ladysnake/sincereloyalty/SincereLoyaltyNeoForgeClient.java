@@ -5,7 +5,6 @@
 package ladysnake.sincereloyalty;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -25,13 +24,7 @@ public final class SincereLoyaltyNeoForgeClient {
 
     public static void onRecalling(RecallingTridentsPayload payload, IPayloadContext context) {
         MinecraftClient client = MinecraftClient.getInstance();
-        client.execute(() -> {
-            if (client.world == null) return;
-            Entity player = client.world.getEntityById(payload.playerId());
-            if (player instanceof TridentRecaller) {
-                ((TridentRecaller) player).updateRecallStatus(payload.status());
-            }
-        });
+        client.execute(() -> SincereLoyaltyClientState.INSTANCE.queueRecallStatus(payload.playerId(), payload.status()));
     }
 
     private static void onClientTick(ClientTickEvent.Post event) {

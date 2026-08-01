@@ -18,11 +18,6 @@ public class ImpaledTridentEntity extends TridentEntity {
 
     public void setTridentAttributes(ItemStack stack) {
         this.setStack(stack.copy());
-        if (this.getWorld() instanceof ServerWorld serverWorld) {
-            byte loyalty = (byte) Math.max(0, EnchantmentHelper.getTridentReturnAcceleration(serverWorld, stack, this));
-            this.dataTracker.set(TridentEntityAccessor.impaled$getLoyalty(), loyalty);
-        }
-        this.dataTracker.set(TridentEntityAccessor.impaled$getEnchanted(), stack.hasGlint());
     }
 
     protected float getDragInWater() {
@@ -30,7 +25,7 @@ public class ImpaledTridentEntity extends TridentEntity {
     }
 
     public void setTridentStack(ItemStack tridentStack) {
-        this.setStack(tridentStack);
+        this.setStack(tridentStack.copy());
     }
 
     protected void setDealtDamage() {

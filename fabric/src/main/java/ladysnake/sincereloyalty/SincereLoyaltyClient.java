@@ -7,8 +7,6 @@ package ladysnake.sincereloyalty;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
 
 public final class SincereLoyaltyClient implements ClientModInitializer {
     public static final SincereLoyaltyClient INSTANCE = new SincereLoyaltyClient();
@@ -26,13 +24,7 @@ public final class SincereLoyaltyClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(RecallingTridentsPayload.ID, (payload, context) -> {
             int playerId = payload.playerId();
             TridentRecaller.RecallStatus recalling = payload.status();
-            MinecraftClient client = context.client();
-            client.execute(() -> {
-                Entity player = client.world.getEntityById(playerId);
-                if (player instanceof TridentRecaller) {
-                    ((TridentRecaller) player).updateRecallStatus(recalling);
-                }
-            });
+            context.client().execute(() -> SincereLoyaltyClientState.INSTANCE.queueRecallStatus(playerId, recalling));
         });
     }
 }

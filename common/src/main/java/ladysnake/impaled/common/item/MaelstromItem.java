@@ -87,9 +87,6 @@ public class MaelstromItem extends RangedWeaponItem {
             }
 
             TridentEntity trident = null;
-            stackToThrow.damage(1, user, LivingEntity.getSlotForHand(user.getActiveHand()));
-            maelstromStack.damage(1, user, LivingEntity.getSlotForHand(user.getActiveHand()));
-
             if (stackToThrow.getItem() instanceof ImpaledTridentItem) {
                 trident = ((ImpaledTridentItem) stackToThrow.getItem()).createTrident(world, user, stackToThrow);
             } else if (stackToThrow.getItem() instanceof TridentItem) {
@@ -101,7 +98,11 @@ public class MaelstromItem extends RangedWeaponItem {
                 if (playerEntity.getAbilities().creativeMode) {
                     trident.pickupType = PersistentProjectileEntity.PickupPermission.CREATIVE_ONLY;
                 }
-                world.spawnEntity(trident);
+                if (!world.spawnEntity(trident)) {
+                    continue;
+                }
+                stackToThrow.damage(1, user, LivingEntity.getSlotForHand(user.getActiveHand()));
+                maelstromStack.damage(1, user, LivingEntity.getSlotForHand(user.getActiveHand()));
                 world.playSoundFromEntity(null, playerEntity, SoundEvents.ITEM_TRIDENT_RETURN, SoundCategory.PLAYERS, 1.0F, 1.0F);
                 if (!playerEntity.getAbilities().creativeMode) {
                     playerEntity.getInventory().removeOne(stackToThrow);

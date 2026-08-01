@@ -8,6 +8,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * Loader-agnostic client state for the trident-recall animation. The actual networking
  * (sending the recall request to the server, receiving the recall status) is handled by
@@ -20,6 +24,7 @@ public final class SincereLoyaltyClientState {
 
     private int useTime = 0;
     private int failedUseCountdown = 0;
+    private final Map<Integer, PendingStatus> pendingStatuses = new HashMap<>();
 
     private SincereLoyaltyClientState() {}
 
@@ -29,6 +34,7 @@ public final class SincereLoyaltyClientState {
 
     @Nullable
     public TridentRecaller.RecallStatus tickTridentRecalling(MinecraftClient mc) {
+        this.applyPendingStatuses(mc);
         if (this.failedUseCountdown > 0) {
             PlayerEntity player = mc.player;
 
@@ -48,5 +54,31 @@ public final class SincereLoyaltyClientState {
             return TridentRecaller.RecallStatus.NONE;
         }
         return null;
+    }
+
+    public void queueRecallStatus(int playerId, TridentRecaller.RecallStatus status) {
+        this.pendingStatuses.put(playerId, new PendingStatus(status, 100));
+    }
+
+    private void applyPendingStatuses(MinecraftClient mc) {
+        if (mc.world == null) {
+            this.pendingStatuses.clear();
+            return;
+        }
+        Iterator<Map.Entry<Integer, PendingStatus>> iterator = this.pendingStatuses.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, PendingStatus> entry = iterator.next();
+            if (mc.world.getEntityById(entry.getKey()) instanceof TridentRecaller recaller) {
+                recaller.updateRecallStatus(entry.getValue().status());
+                iterator.remove();
+            } else if (entry.getValue().ticksLeft() <= 1) {
+                iterator.remove();
+            } else {
+                entry.setValue(new PendingStatus(entry.getValue().status(), entry.getValue().ticksLeft() - 1));
+            }
+        }
+    }
+
+    private record PendingStatus(TridentRecaller.RecallStatus status, int ticksLeft) {
     }
 }

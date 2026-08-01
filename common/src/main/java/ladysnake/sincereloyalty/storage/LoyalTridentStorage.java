@@ -68,11 +68,18 @@ public final class LoyalTridentStorage extends PersistentState {
         LoyalTridentStorage ret = new LoyalTridentStorage(world);
         NbtList ownersNbt = tag.getList("trident_owners", NbtElement.COMPOUND_TYPE);
         for (int i = 0; i < ownersNbt.size(); i++) {
-            OwnedTridents tridents = new OwnedTridents(ret);
             NbtCompound ownerNbt = ownersNbt.getCompound(i);
-            UUID ownerUuid = ownerNbt.getUuid("owner_uuid");
-            tridents.fromTag(ownerNbt);
-            ret.tridents.put(ownerUuid, tridents);
+            if (!ownerNbt.containsUuid("owner_uuid")) {
+                continue;
+            }
+            try {
+                OwnedTridents tridents = new OwnedTridents(ret);
+                UUID ownerUuid = ownerNbt.getUuid("owner_uuid");
+                tridents.fromTag(ownerNbt);
+                ret.tridents.put(ownerUuid, tridents);
+            } catch (IllegalArgumentException ignored) {
+                // Skip only the malformed owner instead of losing the whole persistent state.
+            }
         }
         return ret;
     }
@@ -86,7 +93,16 @@ public final class LoyalTridentStorage extends PersistentState {
      */
     public void memorizeTrident(UUID owner, TridentEntity trident) {
         BlockPos tridentPos = trident.getBlockPos();
-        this.tridents.computeIfAbsent(owner, o -> new OwnedTridents(this)).storeTridentPosition(LoyalTrident.of(trident).loyaltrident_getTridentUuid(), trident.getUuid(), tridentPos);
+        UUID tridentUuid = LoyalTrident.of(trident).loyaltrident_getTridentUuid();
+        if (tridentUuid == null) {
+            return;
+        }
+        boolean newOwner = !this.tridents.containsKey(owner);
+        boolean changed = this.tridents.computeIfAbsent(owner, o -> new OwnedTridents(this))
+                .storeTridentPosition(tridentUuid, trident.getUuid(), tridentPos);
+        if (newOwner || changed) {
+            this.markDirty();
+        }
     }
 
     /**
@@ -95,16 +111,31 @@ public final class LoyalTridentStorage extends PersistentState {
     public void memorizeTrident(UUID owner, UUID tridentUuid, PlayerEntity holder) {
         Preconditions.checkNotNull(owner);
         Preconditions.checkNotNull(tridentUuid);
-        this.tridents.computeIfAbsent(owner, o -> new OwnedTridents(this)).storeTridentHolder(tridentUuid, holder);
+        boolean newOwner = !this.tridents.containsKey(owner);
+        boolean changed = this.tridents.computeIfAbsent(owner, o -> new OwnedTridents(this)).storeTridentHolder(tridentUuid, holder);
+        if (newOwner || changed) {
+            this.markDirty();
+        }
     }
 
     public void forgetTrident(UUID owner, TridentEntity trident) {
-        this.tridents.getOrDefault(owner, OwnedTridents.EMPTY).clearTridentPosition(LoyalTrident.of(trident).loyaltrident_getTridentUuid());
+        UUID tridentUuid = LoyalTrident.of(trident).loyaltrident_getTridentUuid();
+        if (tridentUuid != null && this.tridents.getOrDefault(owner, OwnedTridents.EMPTY).clearTridentPosition(tridentUuid)) {
+            this.markDirty();
+        }
     }
 
     public void loadTridents(PlayerEntity player) {
         for (TridentEntry entry : this.tridents.getOrDefault(player.getUuid(), OwnedTridents.EMPTY)) {
             entry.preloadTrident();
+        }
+    }
+
+    public void releaseTickets(PlayerEntity player) {
+        for (TridentEntry entry : this.tridents.getOrDefault(player.getUuid(), OwnedTridents.EMPTY)) {
+            if (entry instanceof WorldTridentEntry worldEntry) {
+                worldEntry.releaseTicket();
+            }
         }
     }
 
@@ -114,10 +145,15 @@ public final class LoyalTridentStorage extends PersistentState {
     public boolean recallTridents(PlayerEntity player) {
         boolean foundAny = false;
         for (Iterator<TridentEntry> it = this.tridents.getOrDefault(player.getUuid(), OwnedTridents.EMPTY).iterator(); it.hasNext(); ) {
-            TridentEntity trident = it.next().findTrident();
+            TridentEntry entry = it.next();
+            TridentEntity trident = entry.findTrident();
+            if (entry instanceof WorldTridentEntry worldEntry) {
+                worldEntry.releaseTicket();
+            }
 
             if (trident == null) {
                 it.remove();
+                this.markDirty();
                 continue;
             }
 
@@ -133,6 +169,7 @@ public final class LoyalTridentStorage extends PersistentState {
             ((LoyalTrident) trident).loyaltrident_setReturnSlot(player.getInventory().selectedSlot);
             this.world.playSound(player, trident.getX(), trident.getY(), trident.getZ(), SoundEvents.ITEM_TRIDENT_RETURN, trident.getSoundCategory(), 2.0f, 0.7f);
             ((ServerPlayerEntity) player).networkHandler.send(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(SoundEvents.ITEM_TRIDENT_RETURN), trident.getSoundCategory(), trident.getPos().getX(), trident.getPos().getY(), trident.getPos().getZ(), trident.distanceTo(player) / 8, 0.7f, trident.getId()), null);
+            this.markDirty();
             foundAny = true;
         }
         return foundAny;

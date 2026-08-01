@@ -48,7 +48,9 @@ public class ElderTridentItem extends ImpaledTridentItem {
                     if (player.getAbilities().creativeMode) {
                         trident.pickupType = PersistentProjectileEntity.PickupPermission.CREATIVE_ONLY;
                     }
-                    world.spawnEntity(trident);
+                    if (!world.spawnEntity(trident)) {
+                        continue;
+                    }
                     if (user.isSubmergedInWater()) {
                         world.playSoundFromEntity(null, trident, SoundEvents.ENTITY_GUARDIAN_AMBIENT, SoundCategory.PLAYERS, 1.0F, 1.0F);
                     } else {

@@ -50,15 +50,26 @@ public final class SincereLoyaltyNeoForge {
         TridentRecaller.RecallStatus requested = payload.status();
 
         LoyalTridentStorage storage = LoyalTridentStorage.get(player.getServerWorld());
+        if (requested == TridentRecaller.RecallStatus.NONE) {
+            storage.releaseTickets(player);
+            RECALLING_PLAYERS.remove(player.getUuid());
+            ((TridentRecaller) player).updateRecallStatus(requested);
+            return;
+        }
         TridentRecaller.RecallStatus current = ((TridentRecaller) player).getCurrentRecallStatus();
         TridentRecaller.RecallStatus next;
 
         if (storage.hasTridents(player)) {
-            if (current != requested && requested == TridentRecaller.RecallStatus.RECALLING) {
+            if (current == TridentRecaller.RecallStatus.CHARGING
+                    && requested == TridentRecaller.RecallStatus.RECALLING
+                    && !RECALLING_PLAYERS.containsKey(player.getUuid())) {
                 storage.loadTridents(player);
                 RECALLING_PLAYERS.put(player.getUuid(), 4);
             }
-            next = requested;
+            next = requested == TridentRecaller.RecallStatus.RECALLING
+                    && current != TridentRecaller.RecallStatus.CHARGING
+                    ? current
+                    : requested;
         } else {
             next = TridentRecaller.RecallStatus.NONE;
         }

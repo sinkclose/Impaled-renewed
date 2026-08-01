@@ -1,0 +1,25 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ladysnake.sincereloyalty.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "impaled.refmap.json",
+  "mixins": [
+    "AnvilScreenHandlerMixin",
+    "ItemEntityMixin",
+    "ItemMixin",
+    "PlayerEntityMixin",
+    "PlayerInventoryMixin",
+    "ProjectileAccessor",
+    "ServerPlayNetworkHandlerMixin",
+    "SmithingScreenHandlerMixin",
+    "TridentEntityMixin",
+    "TridentItemMixin"
+  ],
+  "client": [
+    "client.MinecraftClientMixin",
+    "client.PlayerEntityRendererMixin",
+    "client.ItemStackTooltipMixin"
+  ],
+  "injectors": { "defaultRequire": 1 }
+}

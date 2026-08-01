@@ -1,7 +1,5 @@
 package ladysnake.impaled.mixin.impaling;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import ladysnake.impaled.common.enchantment.BetterImpaling;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -11,6 +9,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin extends LivingEntity {
@@ -18,9 +18,8 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         super(entityType, world);
     }
 
-    @WrapOperation(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;damage(Lnet/minecraft/entity/damage/DamageSource;F)Z"))
-    private boolean impaled$addImpalingDamage(Entity target, DamageSource source, float damage, Operation<Boolean> original) {
-        float bonus = BetterImpaling.getAttackDamage(this.getMainHandStack(), target, this.getWorld());
-        return original.call(target, source, damage + bonus);
+    @Inject(method = "getDamageAgainst", at = @At("RETURN"), cancellable = true)
+    private void impaled$addImpalingDamage(Entity target, float baseDamage, DamageSource source, CallbackInfoReturnable<Float> cir) {
+        cir.setReturnValue(cir.getReturnValueF() + BetterImpaling.getAttackDamage(this.getMainHandStack(), target, this.getWorld()));
     }
 }

@@ -11,8 +11,14 @@
     "TridentRiptideFeatureRendererMixin",
     "impaling.EntityRendererMixin"
   ],
-  "mixins": [],
-  "injectors": {
-    "defaultRequire": 1
-  }
+  "mixins": [
+    "EntityMixin",
+    "LivingEntityMixin",
+    "PlayerEntityTargetingMixin",
+    "TridentEntityAccessor",
+    "impaling.MobEntityMixin",
+    "impaling.PlayerEntityMixin",
+    "impaling.TridentEntityMixin"
+  ],
+  "injectors": { "defaultRequire": 1 }
 }

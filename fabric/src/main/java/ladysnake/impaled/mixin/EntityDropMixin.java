@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Entity.class)
 public abstract class EntityDropMixin {
     @Inject(method = "dropStack", at = @At("HEAD"), cancellable = true)
-    private void impaled$captureDrop(ItemStack stack, float yOffset, CallbackInfoReturnable<ItemEntity> cir) {
+    private void impaled$captureDrop(ItemStack stack, CallbackInfoReturnable<ItemEntity> cir) {
         if ((Object) this instanceof DropCapture capture) {
             capture.impaled$captureDrop(stack, cir);
         }

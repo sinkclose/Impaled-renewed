@@ -41,11 +41,13 @@ loom {
             environment = "client"
             configName = "Minecraft Client"
             runDir = "run/client"
+            vmArg "-Dmixin.env.disableRefMap=true"
         }
         server {
             environment = "server"
             configName = "Minecraft Server"
             runDir = "run/server"
+            vmArg "-Dmixin.env.disableRefMap=true"
         }
     }
 }

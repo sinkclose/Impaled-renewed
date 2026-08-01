@@ -8,6 +8,9 @@ server_log="${run_dir}/logs/latest.log"
 
 mkdir -p "${run_dir}"
 printf 'eula=true\n' > "${run_dir}/eula.txt"
+: > "${gradle_log}"
+mkdir -p "${run_dir}/logs"
+: > "${server_log}"
 
 ./gradlew ":${loader}:runServer" --no-daemon --max-workers=2 >"${gradle_log}" 2>&1 &
 server_pid=$!

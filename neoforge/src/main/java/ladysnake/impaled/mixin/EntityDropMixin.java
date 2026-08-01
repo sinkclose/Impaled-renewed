@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
 public abstract class EntityDropMixin {
-    @Inject(method = "spawnAtLocation(Lnet/minecraft/world/item/ItemStack;F)Lnet/minecraft/world/entity/item/ItemEntity;", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "dropStack", at = @At("HEAD"), cancellable = true)
     private void impaled$captureDrop(ItemStack stack, float yOffset, CallbackInfoReturnable<ItemEntity> cir) {
         if ((Object) this instanceof DropCapture capture) {
             capture.impaled$captureDrop(stack, cir);

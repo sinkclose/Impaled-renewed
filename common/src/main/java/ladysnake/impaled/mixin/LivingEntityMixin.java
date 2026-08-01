@@ -2,6 +2,7 @@ package ladysnake.impaled.mixin;
 
 import ladysnake.impaled.common.entity.ElderTridentEntity;
 import ladysnake.impaled.common.init.ImpaledItems;
+import ladysnake.impaled.common.DropCapture;
 import ladysnake.sincereloyalty.LoyalTrident;
 import ladysnake.sincereloyalty.SincereLoyalty;
 import net.minecraft.entity.Entity;
@@ -24,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.function.Consumer;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin extends EntityMixin {
+public abstract class LivingEntityMixin implements DropCapture {
     private Consumer<ItemStack> impaled$dropSink;
 
     @Inject(method = "drop", at = @At("HEAD"))
@@ -48,7 +49,7 @@ public abstract class LivingEntityMixin extends EntityMixin {
     }
 
     @Override
-    protected void impaled$captureDrop(ItemStack stack, CallbackInfoReturnable<net.minecraft.entity.ItemEntity> cir) {
+    public void impaled$captureDrop(ItemStack stack, CallbackInfoReturnable<net.minecraft.entity.ItemEntity> cir) {
         if (this.impaled$dropSink != null) {
             this.impaled$dropSink.accept(stack.copy());
             cir.setReturnValue(null);

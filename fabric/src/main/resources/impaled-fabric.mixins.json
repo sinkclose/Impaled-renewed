@@ -12,7 +12,7 @@
     "impaling.EntityRendererMixin"
   ],
   "mixins": [
-    "EntityMixin",
+    "EntityDropMixin",
     "LivingEntityMixin",
     "PlayerEntityTargetingMixin",
     "TridentEntityAccessor",

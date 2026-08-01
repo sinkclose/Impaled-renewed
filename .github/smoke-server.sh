@@ -32,6 +32,6 @@ for _ in $(seq 1 180); do
 done
 
 printf '%s\n' "Dedicated server smoke test failed for ${loader}" >&2
-[[ -f "${gradle_log}" ]] && cp "${gradle_log}" /dev/stderr
-[[ -f "${server_log}" ]] && cp "${server_log}" /dev/stderr
+[[ -f "${gradle_log}" ]] && while IFS= read -r line; do printf '%s\n' "${line}" >&2; done < "${gradle_log}"
+[[ -f "${server_log}" ]] && while IFS= read -r line; do printf '%s\n' "${line}" >&2; done < "${server_log}"
 exit 1

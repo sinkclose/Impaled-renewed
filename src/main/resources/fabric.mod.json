@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "impaled",
   "version": "${version}",
-  "name": "Impaled",
-  "description": "Adds trident variants and a Sincere Loyalty enchantment upgrade for tridents.",
+  "name": "Impaled Renewed",
+  "description": "A renewed port of Impaled — trident variants and a Sincere Loyalty enchantment upgrade for tridents.",
   "authors": [
     "doctor4t",
     "ArathainFarqoe",

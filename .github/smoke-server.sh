@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+run_dir="run"
+gradle_log="${run_dir}/gradle.log"
+server_log="${run_dir}/logs/latest.log"
+
+mkdir -p "${run_dir}"
+printf 'eula=true\n' > "${run_dir}/eula.txt"
+: > "${gradle_log}"
+mkdir -p "${run_dir}/logs"
+: > "${server_log}"
+
+./gradlew runServer --no-daemon --max-workers=2 >"${gradle_log}" 2>&1 &
+server_pid=$!
+
+cleanup() {
+    kill "${server_pid}" 2>/dev/null || true
+    wait "${server_pid}" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+for _ in $(seq 1 180); do
+    if [[ -f "${server_log}" ]] && grep -Eq 'Done \([0-9.]+s\)! For help, type "help"' "${server_log}"; then
+        exit 0
+    fi
+    if [[ -f "${server_log}" ]] && grep -Eq 'Mixin apply failed|MixinTransformerError|NoClassDefFoundError|Exception in thread "main"' "${server_log}"; then
+        break
+    fi
+    if ! kill -0 "${server_pid}" 2>/dev/null; then
+        break
+    fi
+    sleep 1
+done
+
+printf '%s\n' "Dedicated server smoke test failed" >&2
+[[ -f "${gradle_log}" ]] && while IFS= read -r line; do printf '%s\n' "${line}" >&2; done < "${gradle_log}"
+[[ -f "${server_log}" ]] && while IFS= read -r line; do printf '%s\n' "${line}" >&2; done < "${server_log}"
+exit 1

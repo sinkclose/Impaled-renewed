@@ -1,0 +1,74 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - '1.20'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Read mod version
+        id: ver
+        run: |
+          v=$(grep '^mod_version' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        run: ./gradlew build -x test --no-daemon
+
+      - name: Stage jars
+        run: |
+          mkdir -p dist
+          cp build/libs/impaled-*.jar dist/
+          rm -f dist/*-sources.jar
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: impaled-jars
+          path: dist/*.jar
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read mod version
+        id: ver
+        run: |
+          v=$(grep '^mod_version' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: impaled-jars
+          path: release/
+
+      - name: Create release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.ver.outputs.version }}-build.${{ github.run_number }}
+          name: Impaled Renewed ${{ steps.ver.outputs.version }} (build ${{ github.run_number }})
+          body: |
+            Automated build from `${{ github.ref_name }}` (commit ${{ github.sha }}).
+
+            For Fabric 1.20.1 (requires Fabric API): `impaled-${{ steps.ver.outputs.version }}.jar`
+          files: release/*.jar
+          draft: false
+          prerelease: false
+          make_latest: true

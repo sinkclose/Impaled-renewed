@@ -10,7 +10,6 @@ import net.minecraft.loot.provider.number.UniformLootNumberProvider;
 import net.minecraft.util.Identifier;
 import org.ladysnake.impaled.common.init.ImpaledEntityTypes;
 import org.ladysnake.impaled.common.init.ImpaledItems;
-import org.ladysnake.impaled.common.recipe.ImpaledSmithingRecipe;
 
 public class Impaled implements ModInitializer {
     public static final String MODID = "impaled";
@@ -25,7 +24,6 @@ public class Impaled implements ModInitializer {
     public void onInitialize() {
         ImpaledEntityTypes.init();
         ImpaledItems.init();
-        ImpaledSmithingRecipe.register();
 
         // add loot to dungeons, mineshafts, jungle temples, and stronghold libraries chests loot tables
         UniformLootNumberProvider lootTableRange = UniformLootNumberProvider.create(1, 1);

@@ -49,18 +49,20 @@ public class LoyaltyBindingRecipe implements SmithingRecipe {
     }
     
     private final Identifier id;
+    final Ingredient template;
     final Ingredient base;
     final Ingredient addition;
 
-    public LoyaltyBindingRecipe(Identifier id, Ingredient base, Ingredient addition) {
+    public LoyaltyBindingRecipe(Identifier id, Ingredient template, Ingredient base, Ingredient addition) {
         this.id = id;
+        this.template = template;
         this.base = base;
         this.addition = addition;
     }
 
     @Override
     public boolean testTemplate(ItemStack stack) {
-        return true;
+        return this.template.test(stack);
     }
 
     @Override
@@ -80,12 +82,12 @@ public class LoyaltyBindingRecipe implements SmithingRecipe {
 
     @Override
     public boolean matches(Inventory inventory, World world) {
-        return this.base.test(inventory.getStack(1)) && this.addition.test(inventory.getStack(2)) && isLoyalEnough(inventory.getStack(1));
+        return this.template.test(inventory.getStack(0)) && this.base.test(inventory.getStack(1)) && this.addition.test(inventory.getStack(2)) && isLoyalEnough(inventory.getStack(1));
     }
 
     @Override
     public boolean isEmpty() {
-        return Stream.of(this.base, this.addition).anyMatch(Ingredient::isEmpty);
+        return Stream.of(this.template, this.base, this.addition).anyMatch(Ingredient::isEmpty);
     }
 
     @Override
@@ -134,18 +136,21 @@ public class LoyaltyBindingRecipe implements SmithingRecipe {
         public static final Serializer INSTANCE = new Serializer();
         
         public LoyaltyBindingRecipe read(Identifier identifier, JsonObject jsonObject) {
+            Ingredient template = Ingredient.fromJson(JsonHelper.getElement(jsonObject, "template"));
             Ingredient base = Ingredient.fromJson(JsonHelper.getElement(jsonObject, "base"));
             Ingredient addition = Ingredient.fromJson(JsonHelper.getElement(jsonObject, "addition"));
-            return new LoyaltyBindingRecipe(identifier, base, addition);
+            return new LoyaltyBindingRecipe(identifier, template, base, addition);
         }
 
         public LoyaltyBindingRecipe read(Identifier identifier, PacketByteBuf packetByteBuf) {
+            Ingredient template = Ingredient.fromPacket(packetByteBuf);
             Ingredient base = Ingredient.fromPacket(packetByteBuf);
             Ingredient addition = Ingredient.fromPacket(packetByteBuf);
-            return new LoyaltyBindingRecipe(identifier, base, addition);
+            return new LoyaltyBindingRecipe(identifier, template, base, addition);
         }
 
         public void write(PacketByteBuf packetByteBuf, LoyaltyBindingRecipe recipe) {
+            recipe.template.write(packetByteBuf);
             recipe.base.write(packetByteBuf);
             recipe.addition.write(packetByteBuf);
         }

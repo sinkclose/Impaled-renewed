@@ -1,5 +1,8 @@
 {
   "type": "impaled:loyalty_binding",
+  "template": {
+    "item": "minecraft:netherite_upgrade_smithing_template"
+  },
   "addition": {
     "item": "minecraft:echo_shard"
   },

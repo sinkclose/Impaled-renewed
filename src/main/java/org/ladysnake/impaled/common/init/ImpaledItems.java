@@ -6,14 +6,9 @@ import net.minecraft.block.dispenser.ProjectileDispenserBehavior;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.SmithingTemplateItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.Position;
 import net.minecraft.world.World;
 import org.ladysnake.impaled.common.Impaled;
@@ -25,7 +20,6 @@ import org.ladysnake.impaled.common.item.ImpaledTridentItem;
 import org.ladysnake.impaled.common.item.MaelstromItem;
 import org.ladysnake.impaled.common.item.PitchforkItem;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -39,25 +33,6 @@ public class ImpaledItems {
     public static final ElderTridentItem ELDER_TRIDENT = new ElderTridentItem((new Item.Settings()).maxDamage(250), ImpaledEntityTypes.ELDER_TRIDENT);
     public static final AtlanItem ATLAN = new AtlanItem((new Item.Settings()).maxDamage(250), ImpaledEntityTypes.ATLAN);
     public static final MaelstromItem MAELSTROM = new MaelstromItem((new Item.Settings()).maxDamage(80));
-    public static final Item TRIDENT_UPGRADE_SMITHING_TEMPLATE = new SmithingTemplateItem(
-            Text.translatable(
-                    Util.createTranslationKey("item", Impaled.id("smithing_template.trident_upgrade.applies_to"))
-            ).formatted(Formatting.BLUE),
-            Text.translatable(
-                    Util.createTranslationKey("item", Impaled.id("smithing_template.trident_upgrade.ingredients"))
-            ).formatted(Formatting.BLUE),
-            Text.translatable(
-                    Util.createTranslationKey("upgrade", Impaled.id("trident_upgrade"))
-            ).formatted(Formatting.GRAY),
-            Text.translatable(
-                    Util.createTranslationKey("item", Impaled.id("smithing_template.trident_upgrade.base_slot_description"))
-            ),
-            Text.translatable(
-                    Util.createTranslationKey("item", Impaled.id("smithing_template.trident_upgrade.additions_slot_description"))
-            ),
-            List.of(new Identifier("item/empty_slot_sword")),
-            List.of(new Identifier("item/empty_slot_amethyst_shard"))
-    );
 
     public static void init() {
         registerItem(ELDER_GUARDIAN_EYE, "elder_guardian_eye");
@@ -68,7 +43,6 @@ public class ImpaledItems {
         registerTrident(ELDER_TRIDENT, "elder_trident", true);
         registerTrident(ATLAN, "atlan", true);
         registerItem(MAELSTROM, "maelstrom");
-        registerItem(TRIDENT_UPGRADE_SMITHING_TEMPLATE, "trident_upgrade_smithing_template");
     }
 
     public static void registerTrident(ImpaledTridentItem item, String name, boolean registerDispenserBehavior) {

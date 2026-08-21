@@ -10,6 +10,10 @@ import org.ladysnake.impaled.common.item.HellforkItem;
 
 public final class BetterImpaling {
     public static float getAttackDamage(ItemStack stack, Entity target) {
+        if (target == null) {
+            return 0;
+        }
+
         int impalingLevel = EnchantmentHelper.getLevel(Enchantments.IMPALING, stack);
 
         if (impalingLevel > 0) {

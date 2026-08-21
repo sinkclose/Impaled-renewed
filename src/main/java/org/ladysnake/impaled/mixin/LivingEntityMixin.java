@@ -1,6 +1,7 @@
 package org.ladysnake.impaled.mixin;
 
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -35,9 +36,24 @@ public abstract class LivingEntityMixin extends EntityMixin {
             this.impaled$dropSink = ((ElderTridentEntity) directSource).getStackFetcher();
         }
 
-        if (((Object) this) instanceof ElderGuardianEntity && (directSource instanceof PlayerEntity player && player.getMainHandStack().isIn(SincereLoyalty.TRIDENTS) || (directSource instanceof TridentEntity && EnchantmentHelper.getLoyalty(((TridentEntityAccessor) directSource).impaled$getTridentStack()) > 0))) {
-            this.dropStack(new ItemStack(ImpaledItems.ELDER_GUARDIAN_EYE));
-            this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 1.0f, 1.0f, true);
+        if (((Object) this) instanceof ElderGuardianEntity) {
+            boolean dropEye = false;
+            if (directSource instanceof PlayerEntity player) {
+                ItemStack mainHandStack = player.getMainHandStack();
+                if (mainHandStack.isIn(SincereLoyalty.TRIDENTS) || EnchantmentHelper.getLevel(Enchantments.IMPALING, mainHandStack) > 0) {
+                    dropEye = true;
+                }
+            } else if (directSource instanceof TridentEntity) {
+                ItemStack tridentStack = ((TridentEntityAccessor) directSource).impaled$getTridentStack();
+                if (EnchantmentHelper.getLoyalty(tridentStack) > 0 || EnchantmentHelper.getLevel(Enchantments.IMPALING, tridentStack) > 0) {
+                    dropEye = true;
+                }
+            }
+
+            if (dropEye) {
+                this.dropStack(new ItemStack(ImpaledItems.ELDER_GUARDIAN_EYE));
+                this.world.playSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 1.0f, 1.0f, true);
+            }
         }
     }
 
